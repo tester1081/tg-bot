@@ -1,42 +1,53 @@
 import os
 import json
 import logging
-from firebase_admin import credentials, firestore, initialize_app
+import sys
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, CallbackContext
+from telegram.error import Conflict, NetworkError
+from firebase_admin import credentials, firestore, initialize_app
 
-# Configure logging
+# --- Configuration ---
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Load Environment Variables
+# --- Prevent Vercel Execution ---
+if os.environ.get('VERCEL'):
+    logger.error("This bot cannot run on Vercel. Use Render or another service.")
+    sys.exit(1)
+
+# --- Environment Validation ---
 try:
+    REQUIRED_ENV = ["BOT_TOKEN", "WEB_URL", "FIREBASE_CREDENTIALS"]
+    for var in REQUIRED_ENV:
+        if not os.environ.get(var):
+            raise ValueError(f"Missing required environment variable: {var}")
+
     BOT_TOKEN = os.environ["BOT_TOKEN"]
     WEB_URL = os.environ["WEB_URL"]
-    FIREBASE_CREDENTIALS = os.environ["FIREBASE_CREDENTIALS"]
     
-    # Initialize Firebase
-    firebase_creds_dict = json.loads(FIREBASE_CREDENTIALS)
-    cred = credentials.Certificate(firebase_creds_dict)
+    # Firebase Initialization
+    firebase_creds = json.loads(os.environ["FIREBASE_CREDENTIALS"])
+    cred = credentials.Certificate(firebase_creds)
     firebase_app = initialize_app(cred)
     db = firestore.client()
     logger.info("Firebase initialized successfully")
+
 except Exception as e:
     logger.error(f"Initialization failed: {str(e)}")
-    raise
+    sys.exit(1)
 
-# Temporary storage for user data before saving
+# --- Bot Handlers ---
 pending_users = {}
 
 async def start(update: Update, context: CallbackContext) -> None:
-    """Handles the /start command."""
+    """Handle /start command"""
     user = update.message.from_user
     user_id = str(user.id)
-
-    # Check if user exists in Firestore
+    
     user_ref = db.collection("users").document(user_id)
     user_data = user_ref.get()
 
@@ -50,84 +61,87 @@ async def start(update: Update, context: CallbackContext) -> None:
         }
         await update.message.reply_text("📞 Please send your phone number.")
     else:
-        await send_access(update, user_data.to_dict(), new_registration=False)
+        await send_access(update, user_data.to_dict())
 
 async def phone_number(update: Update, context: CallbackContext) -> None:
-    """Handles the phone number input from the user."""
+    """Handle phone number input"""
     user_id = str(update.message.from_user.id)
-    phone_number = update.message.text
-
+    
     if user_id in pending_users:
         user_info = pending_users.pop(user_id)
         user_info.update({
-            "user_id": user_id,
-            "phone_number": phone_number,
+            "phone_number": update.message.text,
             "email": "",
-            "referred_by": "",
-            "transactions": [],
+            "transactions": []
         })
-
-        # Save to Firestore
+        
         db.collection("users").document(user_id).set(user_info)
-        logger.info(f"New user registered: {user_id}")
-        await send_access(update, user_info, new_registration=True)
+        await send_access(update, user_info, new_user=True)
 
-async def send_access(update: Update, user_info: dict, new_registration: bool) -> None:
-    """Sends main menu with inline buttons."""
-    role = user_info.get("role", "user")
-    welcome_text = f"✅ Registration successful, {user_info['first_name']}!" if new_registration else "🔹 Welcome back!"
-
-    keyboard = [
-        [InlineKeyboardButton("🚀 Open VeltraWave", web_app=WebAppInfo(url=WEB_URL))],
-        [InlineKeyboardButton("💰 Check Balance", callback_data="check_balance")],
-    ]
-
-    if role == "admin":
-        keyboard.append([InlineKeyboardButton("🔧 Admin Panel", callback_data="admin_panel")])
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        f"{welcome_text}\n💰 **Balance:** ₦{user_info['balance']:.2f}", 
-        reply_markup=reply_markup
-    )
-
-async def button_click(update: Update, context: CallbackContext) -> None:
-    """Handles button clicks inside Telegram."""
-    query = update.callback_query
-    await query.answer()  # Fixed: Added await here
+async def send_access(update: Update, user_info: dict, new_user=False) -> None:
+    """Send main menu"""
+    welcome = "✅ Registered!" if new_user else "🔹 Welcome back!"
+    text = f"{welcome}\n💰 Balance: ₦{user_info['balance']:.2f}"
     
-    user_id = str(query.from_user.id)
-    user_ref = db.collection("users").document(user_id)
+    buttons = [
+        [InlineKeyboardButton("🚀 Open App", web_app=WebAppInfo(url=WEB_URL))],
+        [InlineKeyboardButton("💰 Check Balance", callback_data="balance")]
+    ]
+    
+    if user_info.get("role") == "admin":
+        buttons.append([InlineKeyboardButton("🔧 Admin", callback_data="admin")])
+    
+    await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(buttons))
+
+async def handle_button(update: Update, context: CallbackContext) -> None:
+    """Handle inline buttons"""
+    query = update.callback_query
+    await query.answer()
+    
+    user_ref = db.collection("users").document(str(query.from_user.id))
     user_data = user_ref.get()
     
-    if not user_data.exists:
-        await query.message.reply_text("🚨 User data not found. Please restart with /start")
-        return
+    if query.data == "balance":
+        await query.edit_message_text(f"💰 Balance: ₦{user_data.get('balance'):.2f}")
+    elif query.data == "admin":
+        await query.edit_message_text("Admin panel")
 
-    user_info = user_data.to_dict()
+# --- Bot Setup ---
+def create_app():
+    app = Application.builder().token(BOT_TOKEN).build()
+    
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, phone_number))
+    app.add_handler(CallbackQueryHandler(handle_button))
+    
+    return app
 
-    if query.data == "check_balance":
-        await query.edit_message_text(f"💰 **Your Balance:** ₦{user_info['balance']:.2f}")
-    elif query.data == "admin_panel":
-        await query.edit_message_text("🔧 Welcome to the Admin Panel!")
-
-def main() -> None:
-    """Run the bot."""
-    try:
-        app = Application.builder().token(BOT_TOKEN).build()
+def run_bot():
+    app = create_app()
+    
+    if os.environ.get('RENDER'):
+        # Webhook mode for production
+        PORT = int(os.environ.get("PORT", 5000))
+        WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
         
-        # Add handlers
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, phone_number))
-        app.add_handler(CallbackQueryHandler(button_click))
-
-        logger.info("Bot starting...")
-        app.run_polling()
-    except Exception as e:
-        logger.error(f"Bot failed: {str(e)}")
-        raise
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            webhook_url=WEBHOOK_URL,
+            secret_token=os.environ.get("WEBHOOK_SECRET")
+        )
+    else:
+        # Polling mode for development
+        try:
+            app.run_polling(
+                close_loop=False,
+                stop_signals=None,
+                allowed_updates=Update.ALL_TYPES
+            )
+        except Conflict:
+            logger.error("Another instance is running. Exiting.")
+            sys.exit(1)
 
 if __name__ == "__main__":
-    # Suppress port warning for Render
     os.environ['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
-    main()
+    run_bot()
