@@ -115,40 +115,37 @@ async def run_bot():
     app = create_app()
     
     if os.environ.get('RENDER'):
-        # Webhook mode for production
-        PORT = int(os.environ.get("PORT", 5000))
-        WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
-        SECRET_TOKEN = os.environ.get("WEBHOOK_SECRET", "default_secret")
-        
-        # Set up webhook properly
-        await app.bot.set_webhook(
-            url=WEBHOOK_URL,
-            secret_token=SECRET_TOKEN
-        )
-        
-        # Start the webhook server
-        await app.updater.start_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            webhook_url=WEBHOOK_URL,
-            secret_token=SECRET_TOKEN
-        )
-        
-        logger.info(f"Webhook server started on port {PORT}")
-        
-        # Keep the application running
-        await app.start()
-        await asyncio.Event().wait()
-    else:
-        # Polling mode for development
+        # Free tier solution - use polling with keep-alive
         try:
             await app.initialize()
-            await app.updater.start_polling()
-            logger.info("Bot running in polling mode")
-            await asyncio.Event().wait()  # Run indefinitely
+            await app.start()
+            
+            # Start polling with timeout handling
+            await app.updater.start_polling(
+                poll_interval=3.0,
+                timeout=10,
+                drop_pending_updates=True
+            )
+            
+            logger.info("Bot running in polling mode (Render free tier)")
+            
+            # Keep the application running
+            while True:
+                await asyncio.sleep(3600)  # Sleep for 1 hour
+                
         except Conflict:
             logger.error("Another instance is running. Exiting.")
             sys.exit(1)
+        except Exception as e:
+            logger.error(f"Bot failed: {str(e)}")
+            sys.exit(1)
+    else:
+        # Local development - standard polling
+        try:
+            await app.initialize()
+            await app.updater.start_polling()
+            logger.info("Bot running in polling mode (local development)")
+            await app.idle()
         except Exception as e:
             logger.error(f"Bot failed: {str(e)}")
             sys.exit(1)
