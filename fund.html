@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fund Wallet - VeltraWave</title>
+    <title>Fund Wallet - VeltraWave VTU</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
         
@@ -109,7 +114,31 @@
             z-index: 10;
         }
         
-        .back-button {
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-image {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .header-icon {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -118,308 +147,283 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            position: relative;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
         
-        .back-button:hover {
+        .header-icon:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
         
-        .page-title {
-            font-size: 1.5rem;
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 600;
+            padding: 0 4px;
         }
         
         /* Main Content */
         .main-content {
-            padding: 0 20px 100px;
+            padding: 0 20px 20px;
             max-width: 800px;
             margin: 0 auto;
         }
         
-        /* Wallet Card */
-        .wallet-card {
-            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
-            border-radius: 20px;
-            padding: 24px;
+        /* Page Title */
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
             margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Fund Wallet Card */
+        .fund-wallet-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 24px;
         }
         
-        .wallet-balance {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
+        .fund-wallet-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+            border-radius: 24px;
+            z-index: 0;
         }
         
-        .wallet-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+        .fund-wallet-card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
             margin-bottom: 16px;
-        }
-        
-        .wallet-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .wallet-action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: var(--text);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+        
+        .section-title i {
+            color: var(--primary);
+        }
+        
+        .section-description {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        /* Form Group */
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 1rem;
             transition: all 0.3s ease;
         }
         
-        .wallet-action-btn:hover {
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(45, 127, 249, 0.3);
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Amount Presets */
+        .amount-presets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .amount-preset {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .amount-preset:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
         }
         
-        .wallet-action-btn.primary {
-            background: var(--primary);
-        }
-        
-        .wallet-action-btn.primary:hover {
-            background: var(--primary-light);
-        }
-        
-        /* Info Card */
-        .info-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .info-card.warning {
-            background: rgba(255, 181, 71, 0.1);
-            border-color: rgba(255, 181, 71, 0.2);
-        }
-        
-        .info-card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .info-card-title i {
-            color: var(--warning);
-        }
-        
-        .info-card-content {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        /* Form Elements */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            display: block;
-            color: var(--text-secondary);
-        }
-        
-        .form-select, .form-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            padding: 14px 16px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            appearance: none;
-            -webkit-appearance: none;
-            backdrop-filter: blur(10px);
-        }
-        
-        .form-select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 16px;
-        }
-        
-        .form-select:focus, .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
-        }
-        
-        .form-select option {
-            background: #1A2035;
-            color: white;
-        }
-        
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-        
-        .primary-btn {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
-        }
-        
-        .primary-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        /* Quick Amount Buttons */
-        .quick-amounts {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .amount-btn {
-            flex: 1;
-            min-width: 80px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: white;
-            padding: 12px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        
-        .amount-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .amount-btn.active {
-            background: rgba(45, 127, 249, 0.1);
+        .amount-preset.active {
+            background: rgba(45, 127, 249, 0.3);
             border-color: var(--primary);
         }
         
         /* Payment Methods */
         .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
         
-        .payment-method-title {
-            font-size: 1rem;
-            font-weight: 500;
-            margin-bottom: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .payment-methods-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-        }
-        
-        .payment-method-card {
-            background: var(--card-bg);
+        .payment-method {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 16px;
             padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            height: 100px;
         }
         
-        .payment-method-card.active {
+        .payment-method:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .payment-method.active {
+            background: rgba(45, 127, 249, 0.3);
             border-color: var(--primary);
-            background: rgba(45, 127, 249, 0.1);
-        }
-        
-        .payment-method-card:hover:not(.active) {
-            transform: translateY(-3px);
-            background: rgba(255, 255, 255, 0.1);
         }
         
         .payment-method-icon {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-        
-        .payment-method-name {
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-align: center;
-        }
-        
-        /* Fee Display */
-        .fee-display {
-            background: rgba(255, 255, 255, 0.05);
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
-            padding: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .payment-method-title {
+            font-weight: 500;
+        }
+        
+        /* Summary */
+        .summary-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
             margin-bottom: 24px;
         }
         
-        .fee-item {
+        .summary-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .summary-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
-        .fee-item:last-child {
+        .summary-item:last-child {
             margin-bottom: 0;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-weight: 600;
         }
         
-        .fee-label {
+        .summary-label {
             color: var(--text-secondary);
         }
         
-        .fee-value {
+        .summary-value {
             font-weight: 500;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        /* Button */
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(45, 127, 249, 0.25);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(45, 127, 249, 0.4);
+        }
+        
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
         }
         
         /* Navigation Bar */
@@ -485,317 +489,130 @@
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
-        /* Ripple Effect */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0);
-            animation: ripple 0.8s linear;
-            pointer-events: none;
-        }
-        
-        @keyframes ripple {
-            to {
-                transform: scale(2);
-                opacity: 0;
-            }
-        }
-        
-        /* Confirmation Modal */
-        .modal-overlay {
+        /* Loading Animation */
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10, 15, 30, 0.8);
-            backdrop-filter: blur(5px);
+            background: var(--background);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .loading-overlay.hide {
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
         }
         
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 90%;
-            width: 400px;
+        .loading-container {
             position: relative;
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
+            width: 100px;
+            height: 100px;
         }
         
-        .modal-overlay.show .modal {
-            transform: scale(1);
-        }
-        
-        .modal-close {
+        .loading-bubble {
             position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 32px;
-            height: 32px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        
-        .modal-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 20px;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-            margin: 0 auto 16px;
+            opacity: 0;
+            transform: scale(0);
         }
         
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-align: center;
+        .bubble-1 {
+            width: 30px;
+            height: 30px;
+            top: 35px;
+            left: 35px;
+            animation: bubble 2s infinite ease-in-out;
         }
         
-        .modal-description {
-            color: var(--text-secondary);
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        
-        .confirmation-details {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .confirmation-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        
-        .confirmation-item:last-child {
-            margin-bottom: 0;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .confirmation-label {
-            color: var(--text-secondary);
-        }
-        
-        .confirmation-value {
-            font-weight: 500;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .modal-btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .modal-btn.cancel {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text);
-        }
-        
-        .modal-btn.confirm {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-        
-        .modal-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
+        .bubble-2 {
+            width: 20px;
+            height: 20px;
             top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 350px;
+            left: 50px;
+            animation: bubble 2s infinite ease-in-out 0.3s;
         }
         
-        .toast {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 16px;
-            color: var(--text);
-            font-size: 0.9rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transform: translateX(120%);
-            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
-            border-left: 4px solid var(--primary);
+        .bubble-3 {
+            width: 15px;
+            height: 15px;
+            top: 60px;
+            left: 20px;
+            animation: bubble 2s infinite ease-in-out 0.6s;
         }
         
-        .toast.success {
-            border-left-color: var(--success);
+        .bubble-4 {
+            width: 10px;
+            height: 10px;
+            top: 70px;
+            left: 60px;
+            animation: bubble 2s infinite ease-in-out 0.9s;
         }
         
-        .toast.error {
-            border-left-color: var(--error);
-        }
-        
-        .toast.warning {
-            border-left-color: var(--warning);
-        }
-        
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        
-        .toast.success .toast-icon {
-            background: rgba(0, 225, 160, 0.2);
-            color: var(--success);
-        }
-        
-        .toast.error .toast-icon {
-            background: rgba(255, 94, 125, 0.2);
-            color: var(--error);
-        }
-        
-        .toast.warning .toast-icon {
-            background: rgba(255, 181, 71, 0.2);
-            color: var(--warning);
-        }
-        
-        .toast-content {
-            flex: 1;
-        }
-        
-        .toast-title {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .toast-message {
-            color: var(--text-secondary);
-        }
-        
-        .toast-close {
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 0.8rem;
-            padding: 4px;
-        }
-        
-        @keyframes slide-in {
-            to {
-                transform: translateX(0);
+        @keyframes bubble {
+            0% {
+                transform: scale(0);
+                opacity: 0;
             }
-        }
-        
-        @keyframes fade-out {
-            0%, 80% {
-                opacity: 1;
+            20% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            40%, 80% {
+                transform: scale(1);
+                opacity: 0.6;
             }
             100% {
+                transform: scale(0);
                 opacity: 0;
-                visibility: hidden;
             }
         }
         
-        /* Paystack Modal */
-        .paystack-iframe-container {
+        /* Toast Notification */
+        .toast-notification {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 15, 30, 0.9);
-            z-index: 2000;
-            display: none;
-        }
-        
-        .paystack-iframe-container.show {
-            display: block;
-        }
-        
-        .paystack-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        
-        .paystack-close {
-            position: absolute;
-            top: 20px;
+            bottom: 20px;
             right: 20px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 2001;
+            background-color: rgba(20, 30, 50, 0.95);
             color: white;
-            font-size: 1.2rem;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
         }
         
         /* Responsive Adjustments */
         @media (max-width: 768px) {
-            .payment-methods-grid {
-                grid-template-columns: repeat(3, 1fr);
+            .payment-methods {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 480px) {
+            .amount-presets {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .payment-methods {
+                grid-template-columns: repeat(1, 1fr);
+            }
+            
             .nav-item span {
                 display: none;
             }
@@ -803,18 +620,23 @@
             .nav-item i {
                 margin-bottom: 0;
             }
-            
-            .payment-methods-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .wallet-actions {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
+    <!-- Loading Animation -->
+    <div class="loading-overlay">
+        <div class="loading-container">
+            <div class="loading-bubble bubble-1"></div>
+            <div class="loading-bubble bubble-2"></div>
+            <div class="loading-bubble bubble-3"></div>
+            <div class="loading-bubble bubble-4"></div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-notification" class="toast-notification"></div>
+    
     <!-- Liquid Background -->
     <div class="liquid-bg">
         <div class="liquid-blob blob-1"></div>
@@ -824,105 +646,100 @@
     
     <!-- Header -->
     <header class="header">
-        <div class="back-button">
-            <i class="fas fa-arrow-left"></i>
+        <div class="logo">
+            <img src="logo.png" alt="VeltraWave" class="logo-image">
+            <span>VeltraWave</span>
         </div>
-        <div class="page-title">Fund Wallet</div>
-        <div style="width: 40px;"></div>
+        <div class="header-actions">
+            <div class="header-icon" id="notification-icon">
+                <i class="fas fa-bell"></i>
+                <div class="notification-badge" id="notification-count">0</div>
+            </div>
+            <div class="header-icon" id="profile-icon">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
     </header>
     
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Wallet Card -->
-        <div class="wallet-card">
-            <div class="wallet-balance">₦24,500.00</div>
-            <div class="wallet-label">Current Balance</div>
-            <div class="wallet-actions">
-                <button class="wallet-action-btn">
-                    <i class="fas fa-history"></i>
-                    Transaction History
-                </button>
-                <button class="wallet-action-btn">
-                    <i class="fas fa-share-alt"></i>
-                    Share Wallet
-                </button>
-            </div>
-        </div>
+        <h1 class="page-title">
+            <i class="fas fa-wallet"></i>
+            Fund Wallet
+        </h1>
         
-        <!-- Service Fee Notice -->
-        <div class="info-card warning">
-            <div class="info-card-title">
-                <i class="fas fa-info-circle"></i>
-                Service Fee Notice
-            </div>
-            <div class="info-card-content">
-                A service fee of ₦50 will be deducted from your deposit amount to cover transaction costs.
-            </div>
-        </div>
-        
-        <!-- Fund Wallet Form -->
-        <form id="fund-wallet-form">
-            <div class="form-group">
-                <label class="form-label">Enter Amount (₦)</label>
-                <input type="number" class="form-input" id="amount" placeholder="Enter amount" min="100" required>
-            </div>
-            
-            <div class="quick-amounts">
-                <div class="amount-btn" data-amount="1000">₦1,000</div>
-                <div class="amount-btn" data-amount="2000">₦2,000</div>
-                <div class="amount-btn" data-amount="5000">₦5,000</div>
-                <div class="amount-btn" data-amount="10000">₦10,000</div>
-                <div class="amount-btn" data-amount="20000">₦20,000</div>
-            </div>
-            
-            <!-- Payment Methods -->
-            <div class="payment-methods">
-                <div class="payment-method-title">Select Payment Method</div>
-                <div class="payment-methods-grid">
-                    <div class="payment-method-card active" data-method="card">
+        <div class="fund-wallet-card">
+            <div class="fund-wallet-card-content">
+                <div class="section-title">
+                    <i class="fas fa-coins"></i>
+                    Add Money to Your Wallet
+                </div>
+                <p class="section-description">
+                    Fund your wallet to enjoy seamless transactions for all services. Choose your preferred amount and payment method below.
+                </p>
+                
+                <div class="form-group">
+                    <label for="amount" class="form-label">Enter Amount (₦)</label>
+                    <input type="number" id="amount" class="form-input" placeholder="Enter amount" min="100" step="100">
+                </div>
+                
+                <div class="amount-presets">
+                    <div class="amount-preset" data-amount="1000">₦1,000</div>
+                    <div class="amount-preset" data-amount="2000">₦2,000</div>
+                    <div class="amount-preset" data-amount="5000">₦5,000</div>
+                    <div class="amount-preset" data-amount="10000">₦10,000</div>
+                    <div class="amount-preset" data-amount="20000">₦20,000</div>
+                    <div class="amount-preset" data-amount="50000">₦50,000</div>
+                </div>
+                
+                <div class="section-title">
+                    <i class="fas fa-credit-card"></i>
+                    Payment Method
+                </div>
+                
+                <div class="payment-methods">
+                    <div class="payment-method active" data-method="card">
                         <div class="payment-method-icon">
                             <i class="fas fa-credit-card"></i>
                         </div>
-                        <div class="payment-method-name">Card</div>
+                        <div class="payment-method-title">Card</div>
                     </div>
-                    
-                    <div class="payment-method-card" data-method="bank">
+                    <div class="payment-method" data-method="bank">
                         <div class="payment-method-icon">
                             <i class="fas fa-university"></i>
                         </div>
-                        <div class="payment-method-name">Bank Transfer</div>
+                        <div class="payment-method-title">Bank</div>
                     </div>
-                    
-                    <div class="payment-method-card" data-method="ussd">
+                    <div class="payment-method" data-method="ussd">
                         <div class="payment-method-icon">
                             <i class="fas fa-mobile-alt"></i>
                         </div>
-                        <div class="payment-method-name">USSD</div>
+                        <div class="payment-method-title">USSD</div>
                     </div>
                 </div>
+                
+                <div class="summary-card">
+                    <div class="summary-title">Payment Summary</div>
+                    <div class="summary-item">
+                        <div class="summary-label">Amount</div>
+                        <div class="summary-value" id="summary-amount">₦0.00</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Service Fee</div>
+                        <div class="summary-value">₦50.00</div>
+                    </div>
+                    <div class="summary-total">
+                        <div>Total</div>
+                        <div id="summary-total">₦50.00</div>
+                    </div>
+                </div>
+                
+                <button id="pay-button" class="btn" disabled>
+                    <i class="fas fa-lock"></i>
+                    Proceed to Payment
+                </button>
             </div>
-            
-            <!-- Fee Display -->
-            <div class="fee-display">
-                <div class="fee-item">
-                    <div class="fee-label">Amount</div>
-                    <div class="fee-value" id="display-amount">₦0.00</div>
-                </div>
-                <div class="fee-item">
-                    <div class="fee-label">Service Fee</div>
-                    <div class="fee-value">₦50.00</div>
-                </div>
-                <div class="fee-item">
-                    <div class="fee-label">Total</div>
-                    <div class="fee-value" id="display-total">₦50.00</div>
-                </div>
-            </div>
-            
-            <button type="submit" class="primary-btn" id="fund-wallet-btn">
-                <i class="fas fa-wallet"></i>
-                Fund Wallet
-            </button>
-        </form>
+        </div>
     </div>
     
     <!-- Navigation Bar -->
@@ -933,7 +750,7 @@
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </div>
-            <div class="nav-item" data-page="services">
+            <div class="nav-item active" data-page="services">
                 <i class="fas fa-th-large"></i>
                 <span>Services</span>
             </div>
@@ -941,436 +758,455 @@
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transactions</span>
             </div>
-            <div class="nav-item active" data-page="account">
+            <div class="nav-item" data-page="account">
                 <i class="fas fa-user"></i>
                 <span>Account</span>
             </div>
         </div>
     </div>
     
-    <!-- Confirmation Modal -->
-    <div class="modal-overlay" id="confirmation-modal">
-        <div class="modal">
-            <div class="modal-close" id="close-modal">
-                <i class="fas fa-times"></i>
-            </div>
-            <div class="modal-icon">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div class="modal-title">Confirm Funding</div>
-            <div class="modal-description">
-                Please review your wallet funding details
-            </div>
-            
-            <div class="confirmation-details">
-                <div class="confirmation-item">
-                    <div class="confirmation-label">Amount</div>
-                    <div class="confirmation-value" id="confirm-amount">₦1,000.00</div>
-                </div>
-                <div class="confirmation-item">
-                    <div class="confirmation-label">Service Fee</div>
-                    <div class="confirmation-value">₦50.00</div>
-                </div>
-                <div class="confirmation-item">
-                    <div class="confirmation-label">Payment Method</div>
-                    <div class="confirmation-value" id="confirm-method">Card</div>
-                </div>
-                <div class="confirmation-item">
-                    <div class="confirmation-label">Total</div>
-                    <div class="confirmation-value" id="confirm-total">₦1,050.00</div>
-                </div>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="modal-btn cancel" id="cancel-funding">
-                    Cancel
-                </button>
-                <button class="modal-btn confirm" id="confirm-funding">
-                    <i class="fas fa-check-circle"></i>
-                    Proceed to Payment
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Paystack Iframe Container -->
-    <div class="paystack-iframe-container" id="paystack-container">
-        <div class="paystack-close" id="paystack-close">
-            <i class="fas fa-times"></i>
-        </div>
-        <div id="paystack-frame-container" style="width:100%; height:100%;"></div>
-    </div>
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
-    
+    <!-- Config Loader Script - This loads environment variables from the server -->
     <script>
-        // Amount Input and Quick Amount Buttons
-        const amountInput = document.getElementById('amount');
-        const amountBtns = document.querySelectorAll('.amount-btn');
-        const displayAmount = document.getElementById('display-amount');
-        const displayTotal = document.getElementById('display-total');
+        // This script fetches configuration from the server
+        let appConfig = {};
         
-        // Format currency function
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-NG', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(amount);
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                if (!response.ok) {
+                    throw new Error('Failed to load configuration');
+                }
+                appConfig = await response.json();
+                console.log('Configuration loaded successfully');
+                
+                // Initialize the app after config is loaded
+                initializeApp();
+            } catch (error) {
+                console.error('Error loading configuration:', error);
+                showToastNotification('Error loading app configuration. Please refresh the page.');
+            }
         }
         
-        // Update display amounts
-        function updateAmountDisplay() {
-            const amount = parseFloat(amountInput.value) || 0;
-            const fee = 50;
-            const total = amount + fee;
+        // Show toast notification
+        function showToastNotification(message) {
+            const toastNotification = document.getElementById('toast-notification');
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
             
-            displayAmount.textContent = `₦${formatCurrency(amount)}`;
-            displayTotal.textContent = `₦${formatCurrency(total)}`;
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
         }
         
-        // Initialize display
-        updateAmountDisplay();
+        // Load configuration when the page loads
+        document.addEventListener('DOMContentLoaded', loadConfig);
+    </script>
+    
+    <!-- Main Application Script -->
+    <script>
+        // Variables
+        let selectedAmount = 0;
+        let selectedMethod = 'card';
+        let userId = null;
+        let userEmail = null;
+        let userName = null;
+        let firebaseApp = null;
+        let db = null;
         
-        amountInput.addEventListener('input', updateAmountDisplay);
+        // Service fee
+        const serviceFee = 50;
         
-        // Quick amount buttons
-        amountBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Remove active class from all buttons
-                amountBtns.forEach(b => b.classList.remove('active'));
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Update amount input
-                const amount = this.dataset.amount;
-                amountInput.value = amount;
-                
-                // Update display
-                updateAmountDisplay();
-                
-                showToast('info', 'Amount Selected', `₦${parseInt(amount).toLocaleString('en-NG')} selected`);
-            });
-        });
-        
-        // Payment Method Cards
-        const paymentMethodCards = document.querySelectorAll('.payment-method-card');
-        
-        paymentMethodCards.forEach(card => {
-            card.addEventListener('click', function() {
-                // Remove active class from all cards
-                paymentMethodCards.forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked card
-                this.classList.add('active');
-                
-                // Show toast
-                const methodName = this.querySelector('.payment-method-name').textContent;
-                showToast('success', 'Payment Method', `${methodName} selected`);
-            });
-        });
-        
-        // Form Submission
-        const fundWalletForm = document.getElementById('fund-wallet-form');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const closeModal = document.getElementById('close-modal');
-        const cancelFunding = document.getElementById('cancel-funding');
-        const confirmFunding = document.getElementById('confirm-funding');
-        const confirmAmount = document.getElementById('confirm-amount');
-        const confirmMethod = document.getElementById('confirm-method');
-        const confirmTotal = document.getElementById('confirm-total');
-        
-        fundWalletForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Initialize the app after config is loaded
+        async function initializeApp() {
+            // Initialize Firebase with config from environment variables
+            const firebaseConfig = {
+                apiKey: appConfig.FIREBASE_API_KEY,
+                authDomain: appConfig.FIREBASE_AUTH_DOMAIN,
+                projectId: appConfig.FIREBASE_PROJECT_ID,
+                storageBucket: appConfig.FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: appConfig.FIREBASE_MESSAGING_SENDER_ID,
+                appId: appConfig.FIREBASE_APP_ID
+            };
             
-            // Get form values
-            const amount = parseFloat(amountInput.value);
+            // Initialize Firebase
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            db = firebaseApp.firestore();
             
-            if (!amount || amount < 100) {
-                showToast('error', 'Invalid Amount', 'Please enter an amount of at least ₦100');
-                return;
-            }
+            // Check if running in Telegram WebApp
+            await checkTelegramUser();
             
-            // Get selected payment method
-            const activeMethodCard = document.querySelector('.payment-method-card.active');
-            if (!activeMethodCard) {
-                showToast('error', 'Payment Method Required', 'Please select a payment method');
-                return;
-            }
+            // Set up event listeners
+            setupEventListeners();
             
-            const methodName = activeMethodCard.querySelector('.payment-method-name').textContent;
+            // Set initial indicator position for navigation
+            setIndicatorPosition(document.querySelector('.nav-item.active'));
             
-            // Calculate total
-            const fee = 50;
-            const total = amount + fee;
-            
-            // Update confirmation modal
-            confirmAmount.textContent = `₦${formatCurrency(amount)}`;
-            confirmMethod.textContent = methodName;
-            confirmTotal.textContent = `₦${formatCurrency(total)}`;
-            
-            // Show confirmation modal
-            confirmationModal.classList.add('show');
-        });
-        
-        // Close modal
-        closeModal.addEventListener('click', function() {
-            confirmationModal.classList.remove('show');
-        });
-        
-        cancelFunding.addEventListener('click', function() {
-            confirmationModal.classList.remove('show');
-            showToast('info', 'Funding Cancelled', 'Your wallet funding has been cancelled');
-        });
-        
-        // Paystack Integration
-        const paystackContainer = document.getElementById('paystack-container');
-        const paystackFrameContainer = document.getElementById('paystack-frame-container');
-        const paystackClose = document.getElementById('paystack-close');
-        
-        confirmFunding.addEventListener('click', function() {
-            // Close confirmation modal
-            confirmationModal.classList.remove('show');
-            
-            // Get amount and payment method
-            const amount = parseFloat(amountInput.value);
-            const fee = 50;
-            const total = amount + fee;
-            const activeMethodCard = document.querySelector('.payment-method-card.active');
-            const paymentMethod = activeMethodCard.dataset.method;
-            
-            // Show processing state
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
-            // In a real app, you would initialize Paystack here
-            // This is a simulation of the Paystack API call
-            setTimeout(() => {
-                // Reset button state
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-check-circle"></i> Proceed to Payment';
-                
-                // Initialize Paystack (simulated)
-                initializePaystack(total, paymentMethod);
-            }, 1500);
-        });
-        
-        // Simulate Paystack initialization
-        function initializePaystack(amount, paymentMethod) {
-            // In a real app, you would make an API call to your backend
-            // to initialize a Paystack transaction and get a payment URL
-            
-            // For demo purposes, we'll simulate the Paystack iframe
-            showToast('info', 'Redirecting', 'Redirecting to payment gateway...');
-            
-            setTimeout(() => {
-                // Show Paystack container
-                paystackContainer.classList.add('show');
-                
-                // Create simulated Paystack payment page
-                paystackFrameContainer.innerHTML = `
-                    <div style="width:100%; height:100%; background-color:#f5f5f5; display:flex; justify-content:center; align-items:center; font-family:Arial, sans-serif;">
-                        <div style="background:white; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:90%; max-width:450px; padding:30px;">
-                            <div style="text-align:center; margin-bottom:30px;">
-                                <div style="font-size:24px; font-weight:600; margin-bottom:10px;">Complete your payment</div>
-                                <div style="font-size:32px; font-weight:700; color:#0066f5; margin-bottom:30px;">₦${formatCurrency(amount)}</div>
-                            </div>
-                            
-                            <div style="margin-bottom:20px;">
-                                <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">Card Number</div>
-                                <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="0000 0000 0000 0000" maxlength="19">
-                            </div>
-                            
-                            <div style="display:flex; gap:15px; margin-bottom:20px;">
-                                <div style="flex:1;">
-                                    <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">Expiry Date</div>
-                                    <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="MM/YY" maxlength="5">
-                                </div>
-                                
-                                <div style="flex:1;">
-                                    <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">CVV</div>
-                                    <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="123" maxlength="3">
-                                </div>
-                            </div>
-                            
-                            <button id="simulate-payment-btn" style="background:#0066f5; color:white; border:none; border-radius:5px; padding:15px; font-size:16px; font-weight:600; width:100%; cursor:pointer;">Pay ₦${formatCurrency(amount)}</button>
-                            
-                            <div style="text-align:center; margin-top:20px; font-size:14px; color:#666;">
-                                <i class="fas fa-lock"></i> Secured by Paystack
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add event listener to the payment button
-                const simulatePaymentBtn = document.getElementById('simulate-payment-btn');
-                simulatePaymentBtn.addEventListener('click', function() {
-                    this.innerHTML = 'Processing...';
-                    this.disabled = true;
-                    
-                    setTimeout(() => {
-                        // Close Paystack container
-                        paystackContainer.classList.remove('show');
-                        
-                        // Show success message
-                        showToast('success', 'Payment Successful', 'Your wallet has been funded successfully');
-                        
-                        // Update wallet balance (in a real app, this would come from the server)
-                        const walletBalance = document.querySelector('.wallet-balance');
-                        const currentBalance = 24500;
-                        const newAmount = parseFloat(amountInput.value);
-                        const newBalance = currentBalance + newAmount;
-                        
-                        // Animate balance change
-                        setTimeout(() => {
-                            walletBalance.textContent = `₦${formatCurrency(newBalance)}`;
-                            
-                            // Reset form
-                            fundWalletForm.reset();
-                            
-                            // Reset amount buttons
-                            amountBtns.forEach(b => b.classList.remove('active'));
-                            
-                            // Reset display
-                            updateAmountDisplay();
-                        }, 1000);
-                    }, 2000);
-                });
+            // Hide loading screen after initialization
+            setTimeout(function() {
+                document.querySelector('.loading-overlay').classList.add('hide');
             }, 1000);
         }
         
-        // Handle Paystack close
-        paystackClose.addEventListener('click', function() {
-            paystackContainer.classList.remove('show');
-            paystackFrameContainer.innerHTML = '';
-            showToast('warning', 'Payment Cancelled', 'You have cancelled the payment process');
-        });
+        // Check if running in Telegram WebApp and get user info
+        async function checkTelegramUser() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand(); // Expand the web app to full view
+                
+                const tgUser = tg.initDataUnsafe?.user;
+                if (tgUser) {
+                    userId = tgUser.id.toString();
+                    userName = `${tgUser.first_name} ${tgUser.last_name || ''}`.trim();
+                    console.log("Telegram user ID:", userId);
+                    await loadUserData(userId);
+                } else {
+                    console.log("No Telegram user data available");
+                    // Use a default test user
+                    userId = 'test_user_123';
+                    userName = 'Test User';
+                    userEmail = 'test@example.com';
+                }
+            } else {
+                console.log("Not in Telegram WebApp - using test mode");
+                // Use a default test user
+                userId = 'test_user_123';
+                userName = 'Test User';
+                userEmail = 'test@example.com';
+            }
+        }
         
-        // Navigation Bar
-        const navItems = document.querySelectorAll('.nav-item');
-        const navIndicator = document.querySelector('.nav-indicator');
+        // Load user data from Firestore
+        async function loadUserData(userId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                const doc = await userRef.get();
+                
+                if (doc.exists) {
+                    const userData = doc.data();
+                    userEmail = userData.email || `${userId}@veltrawave.com`;
+                } else {
+                    console.log("No user document found.");
+                    userEmail = `${userId}@veltrawave.com`;
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                userEmail = `${userId}@veltrawave.com`;
+            }
+        }
         
-        // Set initial indicator position
-        function setNavIndicatorPosition(item) {
+        // Set up event listeners
+        function setupEventListeners() {
+            // Amount input change
+            const amountInput = document.getElementById('amount');
+            const amountPresets = document.querySelectorAll('.amount-preset');
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            const summaryAmount = document.getElementById('summary-amount');
+            const summaryTotal = document.getElementById('summary-total');
+            const payButton = document.getElementById('pay-button');
+            const navItems = document.querySelectorAll('.nav-item');
+            const notificationCount = document.getElementById('notification-count');
+            
+            amountInput.addEventListener('input', function() {
+                // Clear active class from all presets
+                amountPresets.forEach(preset => {
+                    preset.classList.remove('active');
+                });
+                
+                updateAmount(parseFloat(this.value) || 0);
+            });
+            
+            // Amount presets click
+            amountPresets.forEach(preset => {
+                preset.addEventListener('click', function() {
+                    // Clear active class from all presets
+                    amountPresets.forEach(p => {
+                        p.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked preset
+                    this.classList.add('active');
+                    
+                    // Update amount input
+                    const amount = parseInt(this.dataset.amount);
+                    amountInput.value = amount;
+                    
+                    // Update summary
+                    updateAmount(amount);
+                });
+            });
+            
+            // Payment method selection
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', function() {
+                    // Clear active class from all methods
+                    paymentMethods.forEach(m => {
+                        m.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked method
+                    this.classList.add('active');
+                    
+                    // Update selected method
+                    selectedMethod = this.dataset.method;
+                });
+            });
+            
+            // Pay button click
+            payButton.addEventListener('click', function() {
+                if (selectedAmount < 100) {
+                    showToastNotification('Please enter an amount of at least ₦100');
+                    return;
+                }
+                
+                initiatePayment();
+            });
+            
+            // Navigation items click
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Move indicator
+                    setIndicatorPosition(this);
+                    
+                    // Navigate to the corresponding page
+                    const page = this.dataset.page;
+                    if (page === 'home') {
+                        window.location.href = 'index.html';
+                    } else if (page === 'transactions') {
+                        window.location.href = 'not.html';
+                    } else if (page === 'services') {
+                        // You can decide which service page to navigate to
+                        window.location.href = 'data.html';
+                    } else if (page === 'account') {
+                        // Profile page
+                        window.location.href = 'profile.html';
+                    }
+                });
+            });
+        }
+        
+        // Update amount in summary
+        function updateAmount(amount) {
+            selectedAmount = amount;
+            
+            // Format amount with commas
+            const formattedAmount = amount.toLocaleString('en-NG', {
+                style: 'currency',
+                currency: 'NGN',
+                minimumFractionDigits: 2
+            }).replace('NGN', '₦');
+            
+            // Calculate total
+            const total = amount + serviceFee;
+            
+            // Format total with commas
+            const formattedTotal = total.toLocaleString('en-NG', {
+                style: 'currency',
+                currency: 'NGN',
+                minimumFractionDigits: 2
+            }).replace('NGN', '₦');
+            
+            // Update summary
+            const summaryAmount = document.getElementById('summary-amount');
+            const summaryTotal = document.getElementById('summary-total');
+            summaryAmount.textContent = formattedAmount;
+            summaryTotal.textContent = formattedTotal;
+            
+            // Enable/disable pay button
+            const payButton = document.getElementById('pay-button');
+            payButton.disabled = amount < 100;
+        }
+        
+        // Initiate payment with Paystack
+        function initiatePayment() {
+            // Show loading overlay
+            document.querySelector('.loading-overlay').classList.remove('hide');
+            
+            // Calculate total amount (including service fee)
+            const totalAmount = selectedAmount + serviceFee;
+            
+            // Generate a reference
+            const reference = 'VW_' + Math.floor(Math.random() * 1000000000) + '_' + new Date().getTime();
+            
+            // Get Paystack public key from environment variables
+            const paystackPublicKey = appConfig.paystackPublicKey;
+            
+            // Initialize Paystack payment
+            const handler = PaystackPop.setup({
+                key: paystackPublicKey,
+                email: userEmail,
+                amount: totalAmount * 100, // Paystack amount is in kobo (100 kobo = 1 Naira)
+                currency: 'NGN',
+                ref: reference,
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "User ID",
+                            variable_name: "user_id",
+                            value: userId
+                        },
+                        {
+                            display_name: "Service Fee",
+                            variable_name: "service_fee",
+                            value: serviceFee
+                        }
+                    ]
+                },
+                callback: function(response) {
+                    // Payment was successful
+                    console.log('Payment complete! Reference: ' + response.reference);
+                    
+                    // Process the successful payment
+                    processSuccessfulPayment(response.reference, totalAmount, selectedAmount);
+                },
+                onClose: function() {
+                    // User closed the payment modal
+                    console.log('Payment window closed');
+                    
+                    // Hide loading overlay
+                    document.querySelector('.loading-overlay').classList.add('hide');
+                    
+                    // Show toast notification
+                    showToastNotification('Payment cancelled');
+                }
+            });
+            
+            // Open the payment modal
+            handler.openIframe();
+        }
+        
+        // Process successful payment
+        async function processSuccessfulPayment(reference, totalAmount, actualAmount) {
+            try {
+                // Hide loading overlay
+                document.querySelector('.loading-overlay').classList.add('hide');
+                
+                // Create transaction record
+                const transactionData = {
+                    user_id: userId,
+                    reference: reference,
+                    amount: actualAmount,
+                    service_fee: serviceFee,
+                    total_amount: totalAmount,
+                    type: 'wallet',
+                    title: 'Wallet Funding',
+                    description: `Wallet funded with ₦${actualAmount.toLocaleString()}`,
+                    payment_method: selectedMethod,
+                    status: 'success',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // Add transaction to Firestore
+                const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(transactionData);
+                console.log("Transaction added with ID: ", transactionRef.id);
+                
+                // Update user balance
+                const userRef = db.collection('users').doc(userId);
+                
+                // Use a transaction to ensure data consistency
+                await db.runTransaction(async (transaction) => {
+                    const userDoc = await transaction.get(userRef);
+                    
+                    if (!userDoc.exists) {
+                        // Create user if not exists
+                        transaction.set(userRef, {
+                            id: userId,
+                            balance: actualAmount,
+                            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } else {
+                        // Update existing user
+                        const userData = userDoc.data();
+                        const newBalance = (userData.balance || 0) + actualAmount;
+                        
+                        transaction.update(userRef, {
+                            balance: newBalance,
+                            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+                });
+                
+                // Add notification
+                await addNotification(userId, `Your wallet has been funded with ₦${actualAmount.toLocaleString()}`);
+                
+                // Show success toast
+                showToastNotification('Wallet funded successfully!');
+                
+                // Redirect to dashboard after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error("Error processing payment: ", error);
+                showToastNotification('Error processing payment. Please try again.');
+            }
+        }
+        
+        // Add a notification
+        async function addNotification(userId, message, type = 'transaction') {
+            try {
+                await db.collection('users').doc(userId).collection('notifications').add({
+                    text: message,
+                    type: type,
+                    read: false,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Increment notification count
+                const notificationCount = document.getElementById('notification-count');
+                const currentCount = parseInt(notificationCount.textContent || '0');
+                notificationCount.textContent = (currentCount + 1).toString();
+                notificationCount.style.display = 'flex';
+                
+            } catch (error) {
+                console.error("Error adding notification: ", error);
+            }
+        }
+        
+        // Set indicator position for navigation
+        function setIndicatorPosition(item) {
             const itemRect = item.getBoundingClientRect();
             const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            const navIndicator = document.querySelector('.nav-indicator');
             
             navIndicator.style.width = `${itemRect.width}px`;
             navIndicator.style.left = `${itemRect.left - navRect.left}px`;
         }
         
-        // Set initial position
-        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
-        
-        // Add ripple effect and handle navigation
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                // Remove active class from all items
-                navItems.forEach(navItem => {
-                    navItem.classList.remove('active');
-                });
-                
-                // Add active class to clicked item
-                this.classList.add('active');
-                
-                // Move indicator
-                setNavIndicatorPosition(this);
-                
-                // Create ripple effect
-                const navBar = document.querySelector('.nav-bar');
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                
-                const rect = navBar.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.width = ripple.style.height = `${size}px`;
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                
-                navBar.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 800);
-                
-                // In a real app, you would navigate to the corresponding page
-                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
-            });
-        });
-        
-        // Window resize handler for indicators
-        window.addEventListener('resize', function() {
-            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
-        });
-        
-        // Back button
-        document.querySelector('.back-button').addEventListener('click', function() {
-            showToast('info', 'Navigation', 'Returning to dashboard...');
-            setTimeout(() => {
-                window.location.href = 'vtu-dashboard.html';
-            }, 1000);
-        });
-        
-        // Toast Notification System
-        function showToast(type, title, message) {
-            const toastContainer = document.getElementById('toast-container');
-            
-            // Create toast element
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            // Set icon based on type
-            let icon = '';
-            switch (type) {
-                case 'success':
-                    icon = 'check-circle';
-                    break;
-                case 'error':
-                    icon = 'x-circle';
-                    break;
-                case 'warning':
-                    icon = 'alert-triangle';
-                    break;
-                default:
-                    icon = 'info';
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) {
+                return 'Just now';
             }
             
-            // Set toast content
-            toast.innerHTML = `
-                <div class="toast-icon">
-                    <i class="fas fa-${icon}"></i>
-                </div>
-                <div class="toast-content">
-                    <div class="toast-title">${title}</div>
-                    <div class="toast-message">${message}</div>
-                </div>
-                <div class="toast-close">
-                    <i class="fas fa-times"></i>
-                </div>
-            `;
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
             
-            // Add toast to container
-            toastContainer.appendChild(toast);
-            
-            // Add click event to close button
-            toast.querySelector('.toast-close').addEventListener('click', function() {
-                toast.remove();
-            });
-            
-            // Auto remove toast after animation completes
-            setTimeout(() => {
-                toast.remove();
-            }, 5500);
+            if (diffSec < 60) {
+                return 'Just now';
+            } else if (diffMin < 60) {
+                return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+            } else if (diffHour < 24) {
+                return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+            } else if (diffDay < 7) {
+                return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
         }
-        
-        // Show initial toast on page load
-        setTimeout(() => {
-            showToast('info', 'Welcome', 'Fund your wallet to enjoy seamless transactions on VeltraWave');
-        }, 1000);
     </script>
 </body>
 </html>
