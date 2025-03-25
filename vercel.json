@@ -2,22 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/api/.*",
-      "dest": "/api"
-    },
-    {
-      "src": "/fund-wallet",
-      "dest": "/fund-wallet.html"
-    },
-    {
-      "src": "/",
-      "dest": "/index.html"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     }
   ]
 }
