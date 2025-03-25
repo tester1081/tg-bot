@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import sys
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, CallbackContext
 from telegram.error import Conflict, NetworkError
@@ -13,11 +14,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# --- Prevent Vercel Execution ---
-if os.environ.get('VERCEL'):
-    logger.error("This bot cannot run on Vercel. Use Render or another service.")
-    sys.exit(1)
 
 # --- Environment Validation ---
 try:
@@ -106,7 +102,15 @@ async def handle_button(update: Update, context: CallbackContext) -> None:
     elif query.data == "admin":
         await query.edit_message_text("Admin panel")
 
-# --- Bot Setup ---
+async def setup_webhook(app):
+    """Configure webhook settings"""
+    WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
+    await app.bot.set_webhook(
+        url=WEBHOOK_URL,
+        secret_token=os.environ.get("WEBHOOK_SECRET")
+    )
+    logger.info(f"Webhook configured for {WEBHOOK_URL}")
+
 def create_app():
     app = Application.builder().token(BOT_TOKEN).build()
     
@@ -116,32 +120,33 @@ def create_app():
     
     return app
 
-def run_bot():
+async def run_bot():
     app = create_app()
     
     if os.environ.get('RENDER'):
         # Webhook mode for production
         PORT = int(os.environ.get("PORT", 5000))
-        WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
+        await setup_webhook(app)
         
-        app.run_webhook(
+        await app.start_webhook(
             listen="0.0.0.0",
             port=PORT,
-            webhook_url=WEBHOOK_URL,
+            webhook_url=f"{os.environ['WEB_URL']}/webhook",
             secret_token=os.environ.get("WEBHOOK_SECRET")
         )
+        logger.info("Bot running in webhook mode")
     else:
         # Polling mode for development
         try:
-            app.run_polling(
-                close_loop=False,
-                stop_signals=None,
-                allowed_updates=Update.ALL_TYPES
-            )
+            await app.initialize()
+            await app.start_polling()
+            logger.info("Bot running in polling mode")
+            while True:
+                await asyncio.sleep(3600)  # Keep alive
         except Conflict:
             logger.error("Another instance is running. Exiting.")
             sys.exit(1)
 
 if __name__ == "__main__":
     os.environ['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
-    run_bot()
+    asyncio.run(run_bot())
