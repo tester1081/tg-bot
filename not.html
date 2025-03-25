@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeltraWave - Notifications</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-image {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .back-btn {
+            background: var(--surface);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Notifications Container */
+        .notifications-container {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: var(--primary);
+        }
+        
+        .mark-read {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .mark-read:hover {
+            background: rgba(45, 127, 249, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .notification-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        /* Custom scrollbar */
+        .notification-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .notification-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .notification-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .notification-item {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+        
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .notification-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-message {
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
+        .notification-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .notification-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .loading-overlay.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .loading-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .bubble-1 {
+            width: 30px;
+            height: 30px;
+            top: 35px;
+            left: 35px;
+            animation: bubble 2s infinite ease-in-out;
+        }
+        
+        .bubble-2 {
+            width: 20px;
+            height: 20px;
+            top: 20px;
+            left: 50px;
+            animation: bubble 2s infinite ease-in-out 0.3s;
+        }
+        
+        .bubble-3 {
+            width: 15px;
+            height: 15px;
+            top: 60px;
+            left: 20px;
+            animation: bubble 2s infinite ease-in-out 0.6s;
+        }
+        
+        @keyframes bubble {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            20% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            40%, 80% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .notifications-container {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Animation -->
+    <div class="loading-overlay">
+        <div class="loading-container">
+            <div class="loading-bubble bubble-1"></div>
+            <div class="loading-bubble bubble-2"></div>
+            <div class="loading-bubble bubble-3"></div>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <button class="back-btn" id="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="logo">
+            <img src="logo.png" alt="VeltraWave" class="logo-image">
+            <span>VeltraWave</span>
+        </div>
+        <div style="width: 40px;"></div> <!-- Spacer for alignment -->
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="notifications-container">
+            <div class="notifications-header">
+                <div class="section-title">
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </div>
+                <div class="mark-read" id="mark-all-read">
+                    <i class="fas fa-check-double"></i>
+                    <span>Mark all as read</span>
+                </div>
+            </div>
+            <div class="notification-list" id="notification-list">
+                <!-- Notifications will be loaded here -->
+                <div class="notification-empty">Loading notifications...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item active" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQGxYFhHnZ_WKS1LJ-Z6G_aGJRgQinHjA",
+            authDomain: "veltrawave-vtu.firebaseapp.com",
+            projectId: "veltrawave-vtu",
+            storageBucket: "veltrawave-vtu.appspot.com",
+            messagingSenderId: "431351611304",
+            appId: "1:431351611304:web:YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // DOM Elements
+        const backBtn = document.getElementById('back-btn');
+        const markAllRead = document.getElementById('mark-all-read');
+        const notificationList = document.getElementById('notification-list');
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+
+        // Current user ID
+        let currentUserId = null;
+
+        // Loading Animation
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize the app
+            await initApp();
+            
+            // Hide loading screen after initialization
+            setTimeout(function() {
+                document.querySelector('.loading-overlay').classList.add('hide');
+            }, 1000);
+        });
+
+        // Initialize the app
+        async function initApp() {
+            // Check if running in Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand(); // Expand the web app to full view
+                
+                const tgUser = tg.initDataUnsafe?.user;
+                if (tgUser) {
+                    currentUserId = tgUser.id.toString();
+                    console.log("Telegram user ID:", currentUserId);
+                    await loadNotifications(currentUserId);
+                    setupNotificationListeners(currentUserId);
+                } else {
+                    console.log("No Telegram user data available");
+                    loadMockNotifications();
+                }
+            } else {
+                console.log("Not in Telegram WebApp - using test mode");
+                currentUserId = 'test_user_123';
+                loadMockNotifications();
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Set initial indicator position for navigation
+            setIndicatorPosition(document.querySelector('.nav-item.active'));
+        }
+
+        // Load notifications from Firestore
+        async function loadNotifications(userId) {
+            try {
+                // Clear the notification list
+                notificationList.innerHTML = '';
+                
+                // Get notifications for the current user
+                const querySnapshot = await db.collection('users').doc(userId).collection('notifications')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                if (querySnapshot.empty) {
+                    notificationList.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+                    return;
+                }
+                
+                querySnapshot.forEach((doc) => {
+                    const notification = doc.data();
+                    addNotificationToDOM(notification, doc.id);
+                });
+            } catch (error) {
+                console.error("Error loading notifications: ", error);
+                notificationList.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
+            }
+        }
+
+        // Add notification to DOM
+        function addNotificationToDOM(notification, notificationId) {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = 'notification-item';
+            
+            // Check if notification is unread
+            if (!notification.read) {
+                notificationItem.innerHTML = `
+                    <div class="notification-dot"></div>
+                    <div class="notification-content">
+                        <div class="notification-message">${notification.text}</div>
+                        <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                    </div>
+                `;
+            } else {
+                notificationItem.innerHTML = `
+                    <div class="notification-content">
+                        <div class="notification-message">${notification.text}</div>
+                        <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                    </div>
+                `;
+            }
+            
+            // Add click event to mark as read
+            notificationItem.addEventListener('click', () => {
+                if (!notification.read && currentUserId) {
+                    markNotificationAsRead(currentUserId, notificationId);
+                }
+            });
+            
+            // Add to the beginning of the list
+            if (notificationList.firstChild && notificationList.firstChild.classList.contains('notification-empty')) {
+                notificationList.removeChild(notificationList.firstChild);
+            }
+            notificationList.insertBefore(notificationItem, notificationList.firstChild);
+        }
+
+        // Mark a notification as read
+        async function markNotificationAsRead(userId, notificationId) {
+            try {
+                await db.collection('users').doc(userId).collection('notifications').doc(notificationId).update({
+                    read: true
+                });
+                
+                // Update the UI
+                const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                if (notificationItem) {
+                    const dot = notificationItem.querySelector('.notification-dot');
+                    if (dot) dot.remove();
+                }
+            } catch (error) {
+                console.error("Error marking notification as read: ", error);
+            }
+        }
+
+        // Mark all notifications as read
+        async function markAllNotificationsAsRead() {
+            if (!currentUserId) return;
+            
+            try {
+                // Get all unread notifications
+                const querySnapshot = await db.collection('users').doc(currentUserId).collection('notifications')
+                    .where('read', '==', false)
+                    .get();
+                
+                // Batch update
+                const batch = db.batch();
+                querySnapshot.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                });
+                
+                await batch.commit();
+                
+                // Update UI - remove all notification dots
+                document.querySelectorAll('.notification-dot').forEach(dot => {
+                    dot.remove();
+                });
+                
+                console.log("All notifications marked as read");
+            } catch (error) {
+                console.error("Error marking all notifications as read: ", error);
+            }
+        }
+
+        // Setup real-time notification listeners
+        function setupNotificationListeners(userId) {
+            db.collection('users').doc(userId).collection('notifications')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            // New notification
+                            const notification = change.doc.data();
+                            addNotificationToDOM(notification, change.doc.id);
+                        }
+                    });
+                });
+        }
+
+        // Load mock notifications for testing
+        function loadMockNotifications() {
+            notificationList.innerHTML = '';
+            
+            const mockNotifications = [
+                {
+                    id: 'not1',
+                    text: 'Your wallet has been credited with ₦5,000',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+                    read: false
+                },
+                {
+                    id: 'not2',
+                    text: 'Your data purchase of 1GB was successful',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+                    read: true
+                },
+                {
+                    id: 'not3',
+                    text: 'Welcome to VeltraWave VTU!',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+                    read: true
+                },
+                {
+                    id: 'not4',
+                    text: 'Special offer: 50% discount on all data bundles today!',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+                    read: false
+                },
+                {
+                    id: 'not5',
+                    text: 'Your account verification is complete',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
+                    read: true
+                }
+            ];
+            
+            mockNotifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'notification-item';
+                
+                if (!notification.read) {
+                    notificationItem.innerHTML = `
+                        <div class="notification-dot"></div>
+                        <div class="notification-content">
+                            <div class="notification-message">${notification.text}</div>
+                            <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                        </div>
+                    `;
+                } else {
+                    notificationItem.innerHTML = `
+                        <div class="notification-content">
+                            <div class="notification-message">${notification.text}</div>
+                            <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                        </div>
+                    `;
+                }
+                
+                notificationList.appendChild(notificationItem);
+            });
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'Just now';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffSec < 60) {
+                return 'Just now';
+            } else if (diffMin < 60) {
+                return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+            } else if (diffHour < 24) {
+                return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+            } else if (diffDay < 7) {
+                return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Back button
+            backBtn.addEventListener('click', function() {
+                window.history.back();
+            });
+            
+            // Mark all as read
+            markAllRead.addEventListener('click', function() {
+                markAllNotificationsAsRead();
+            });
+            
+            // Navigation items click
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Remove active class from all items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Move indicator
+                    setIndicatorPosition(this);
+                    
+                    // Navigate to the corresponding page
+                    const page = this.dataset.page;
+                    if (page === 'home') {
+                        window.location.href = 'index.html';
+                    } else if (page === 'transactions') {
+                        window.location.href = 'not.html';
+                    } else if (page === 'services') {
+                        window.location.href = 'data.html';
+                    } else if (page === 'account') {
+                        window.location.href = 'profile.html';
+                    }
+                });
+            });
+        }
+
+        // Set indicator position for navigation
+        function setIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+    </script>
+</body>
+</html>
