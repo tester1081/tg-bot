@@ -102,15 +102,6 @@ async def handle_button(update: Update, context: CallbackContext) -> None:
     elif query.data == "admin":
         await query.edit_message_text("Admin panel")
 
-async def setup_webhook(app):
-    """Configure webhook settings"""
-    WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
-    await app.bot.set_webhook(
-        url=WEBHOOK_URL,
-        secret_token=os.environ.get("WEBHOOK_SECRET")
-    )
-    logger.info(f"Webhook configured for {WEBHOOK_URL}")
-
 def create_app():
     app = Application.builder().token(BOT_TOKEN).build()
     
@@ -126,27 +117,46 @@ async def run_bot():
     if os.environ.get('RENDER'):
         # Webhook mode for production
         PORT = int(os.environ.get("PORT", 5000))
-        await setup_webhook(app)
+        WEBHOOK_URL = f"{os.environ['WEB_URL']}/webhook"
+        SECRET_TOKEN = os.environ.get("WEBHOOK_SECRET", "default_secret")
         
-        await app.start_webhook(
+        # Set up webhook properly
+        await app.bot.set_webhook(
+            url=WEBHOOK_URL,
+            secret_token=SECRET_TOKEN
+        )
+        
+        # Start the webhook server
+        await app.updater.start_webhook(
             listen="0.0.0.0",
             port=PORT,
-            webhook_url=f"{os.environ['WEB_URL']}/webhook",
-            secret_token=os.environ.get("WEBHOOK_SECRET")
+            webhook_url=WEBHOOK_URL,
+            secret_token=SECRET_TOKEN
         )
-        logger.info("Bot running in webhook mode")
+        
+        logger.info(f"Webhook server started on port {PORT}")
+        
+        # Keep the application running
+        await app.start()
+        await asyncio.Event().wait()
     else:
         # Polling mode for development
         try:
             await app.initialize()
-            await app.start_polling()
+            await app.updater.start_polling()
             logger.info("Bot running in polling mode")
-            while True:
-                await asyncio.sleep(3600)  # Keep alive
+            await asyncio.Event().wait()  # Run indefinitely
         except Conflict:
             logger.error("Another instance is running. Exiting.")
+            sys.exit(1)
+        except Exception as e:
+            logger.error(f"Bot failed: {str(e)}")
             sys.exit(1)
 
 if __name__ == "__main__":
     os.environ['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
-    asyncio.run(run_bot())
+    try:
+        asyncio.run(run_bot())
+    except KeyboardInterrupt:
+        logger.info("Bot stopped by user")
+        sys.exit(0)
