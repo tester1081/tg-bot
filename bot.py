@@ -1,21 +1,32 @@
 import os
 import json
+import logging
 from firebase_admin import credentials, firestore, initialize_app
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, CallbackContext
 
-# Load Railway Environment Variables
-BOT_TOKEN = os.environ["BOT_TOKEN"]
-WEB_URL = os.environ["WEB_URL"]
-FIREBASE_CREDENTIALS = os.environ["FIREBASE_CREDENTIALS"]  # Loaded as a string
+# Configure logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
-# Convert JSON string back to dictionary
-firebase_creds_dict = json.loads(FIREBASE_CREDENTIALS)
-
-# Initialize Firebase
-cred = credentials.Certificate(firebase_creds_dict)
-firebase_app = initialize_app(cred)
-db = firestore.client()
+# Load Environment Variables
+try:
+    BOT_TOKEN = os.environ["BOT_TOKEN"]
+    WEB_URL = os.environ["WEB_URL"]
+    FIREBASE_CREDENTIALS = os.environ["FIREBASE_CREDENTIALS"]
+    
+    # Initialize Firebase
+    firebase_creds_dict = json.loads(FIREBASE_CREDENTIALS)
+    cred = credentials.Certificate(firebase_creds_dict)
+    firebase_app = initialize_app(cred)
+    db = firestore.client()
+    logger.info("Firebase initialized successfully")
+except Exception as e:
+    logger.error(f"Initialization failed: {str(e)}")
+    raise
 
 # Temporary storage for user data before saving
 pending_users = {}
@@ -33,9 +44,9 @@ async def start(update: Update, context: CallbackContext) -> None:
         pending_users[user_id] = {
             "first_name": user.first_name,
             "last_name": user.last_name or "",
-            "balance": 0.00,  # Default balance
-            "role": "user",  # Default role
-            "vtu_id": user_id[:6]  # Unique VTU ID based on Telegram ID
+            "balance": 0.00,
+            "role": "user",
+            "vtu_id": user_id[:6]
         }
         await update.message.reply_text("📞 Please send your phone number.")
     else:
@@ -51,25 +62,23 @@ async def phone_number(update: Update, context: CallbackContext) -> None:
         user_info.update({
             "user_id": user_id,
             "phone_number": phone_number,
-            "email": "",  # Can be updated later
-            "referred_by": "",  # If referral system exists
-            "transactions": [],  # Empty list for transaction history
+            "email": "",
+            "referred_by": "",
+            "transactions": [],
         })
 
         # Save to Firestore
         db.collection("users").document(user_id).set(user_info)
-
+        logger.info(f"New user registered: {user_id}")
         await send_access(update, user_info, new_registration=True)
 
 async def send_access(update: Update, user_info: dict, new_registration: bool) -> None:
-    """Sends main menu with inline buttons (opens web app inside Telegram)."""
+    """Sends main menu with inline buttons."""
     role = user_info.get("role", "user")
-
-    # ✅ Show registration success message only ONCE
     welcome_text = f"✅ Registration successful, {user_info['first_name']}!" if new_registration else "🔹 Welcome back!"
 
     keyboard = [
-        [InlineKeyboardButton("🚀 Open VeltraWave", web_app=WebAppInfo(url=WEB_URL))],  # Open inside Telegram
+        [InlineKeyboardButton("🚀 Open VeltraWave", web_app=WebAppInfo(url=WEB_URL))],
         [InlineKeyboardButton("💰 Check Balance", callback_data="check_balance")],
     ]
 
@@ -77,15 +86,17 @@ async def send_access(update: Update, user_info: dict, new_registration: bool) -
         keyboard.append([InlineKeyboardButton("🔧 Admin Panel", callback_data="admin_panel")])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(f"{welcome_text}\n💰 **Balance:** ₦{user_info['balance']:.2f}", reply_markup=reply_markup)
+    await update.message.reply_text(
+        f"{welcome_text}\n💰 **Balance:** ₦{user_info['balance']:.2f}", 
+        reply_markup=reply_markup
+    )
 
 async def button_click(update: Update, context: CallbackContext) -> None:
-    """Handles button clicks inside Telegram (for balance)."""
+    """Handles button clicks inside Telegram."""
     query = update.callback_query
-    query.answer()
+    await query.answer()  # Fixed: Added await here
+    
     user_id = str(query.from_user.id)
-
-    # Retrieve user data
     user_ref = db.collection("users").document(user_id)
     user_data = user_ref.get()
     
@@ -97,15 +108,26 @@ async def button_click(update: Update, context: CallbackContext) -> None:
 
     if query.data == "check_balance":
         await query.edit_message_text(f"💰 **Your Balance:** ₦{user_info['balance']:.2f}")
-
     elif query.data == "admin_panel":
-        await query.edit_message_text("🔧 Welcome to the Admin Panel!\n(No external links, just Telegram)")
+        await query.edit_message_text("🔧 Welcome to the Admin Panel!")
 
-# Initialize the bot
-app = Application.builder().token(BOT_TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, phone_number))
-app.add_handler(CallbackQueryHandler(button_click))
+def main() -> None:
+    """Run the bot."""
+    try:
+        app = Application.builder().token(BOT_TOKEN).build()
+        
+        # Add handlers
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, phone_number))
+        app.add_handler(CallbackQueryHandler(button_click))
 
-print("Bot is running...")
-app.run_polling()
+        logger.info("Bot starting...")
+        app.run_polling()
+    except Exception as e:
+        logger.error(f"Bot failed: {str(e)}")
+        raise
+
+if __name__ == "__main__":
+    # Suppress port warning for Render
+    os.environ['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
+    main()
