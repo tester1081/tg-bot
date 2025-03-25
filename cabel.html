@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cable TV Subscription - VeltraWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+            --dstv-blue: #0077C8;
+            --gotv-purple: #662D91;
+            --startimes-orange: #F7941D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Provider Selection */
+        .provider-selection {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .provider-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 100px;
+        }
+        
+        .provider-card.active {
+            border-color: var(--primary);
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .provider-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .provider-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+        
+        .provider-logo.dstv {
+            background: var(--dstv-blue);
+            color: white;
+        }
+        
+        .provider-logo.gotv {
+            background: var(--gotv-purple);
+            color: white;
+        }
+        
+        .provider-logo.startimes {
+            background: var(--startimes-orange);
+            color: white;
+        }
+        
+        .provider-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-secondary);
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+        }
+        
+        .form-select option {
+            background: #1A2035;
+            color: white;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Selected Provider Display */
+        .selected-provider-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .selected-provider-display.active {
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .selected-provider-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        /* Popular Plans */
+        .popular-plans {
+            margin-top: 30px;
+        }
+        
+        .popular-plans-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+        
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .plan-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .plan-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .plan-provider {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        
+        .plan-provider.dstv {
+            color: var(--dstv-blue);
+        }
+        
+        .plan-provider.gotv {
+            color: var(--gotv-purple);
+        }
+        
+        .plan-provider.startimes {
+            color: var(--startimes-orange);
+        }
+        
+        .plan-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .plan-description {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .plan-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 16px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .modal-description {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .confirmation-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .confirmation-label {
+            color: var(--text-secondary);
+        }
+        
+        .confirmation-value {
+            font-weight: 500;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Live Elements */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            position: relative;
+        }
+        
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 4px;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: typing 1.5s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-4px);
+            }
+        }
+        
+        .live-users {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .live-users-count {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .live-users-avatars {
+            display: flex;
+            margin-right: 8px;
+        }
+        
+        .live-user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--background);
+            margin-left: -8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+        }
+        
+        .live-user-avatar:first-child {
+            margin-left: 0;
+            z-index: 3;
+        }
+        
+        .live-user-avatar:nth-child(2) {
+            z-index: 2;
+        }
+        
+        .live-user-avatar:nth-child(3) {
+            z-index: 1;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transform: translateX(120%);
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--error);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .toast.success .toast-icon {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .toast.warning .toast-icon {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fade-out {
+            0%, 80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .providers-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .plans-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="page-title">Cable TV</div>
+        <div style="width: 40px;"></div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Live Indicators -->
+        <div class="live-users">
+            <div class="live-users-avatars">
+                <div class="live-user-avatar">JD</div>
+                <div class="live-user-avatar">SA</div>
+                <div class="live-user-avatar">KM</div>
+            </div>
+            <div class="live-users-count">156</div> users currently viewing this page
+        </div>
+        
+        <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>LIVE</span>
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+        
+        <!-- Cable TV Subscription Form -->
+        <form id="cable-form">
+            <!-- Selected Provider Display -->
+            <div class="form-group">
+                <label class="form-label">Selected Provider</label>
+                <div class="selected-provider-display" id="selected-provider-display">
+                    Select a provider below
+                </div>
+            </div>
+            
+            <!-- Provider Selection Grid -->
+            <div class="provider-selection">
+                <div class="section-title">Select Provider</div>
+                <div class="providers-grid">
+                    <div class="provider-card" data-provider="dstv">
+                        <div class="provider-logo dstv">
+                            <i class="fas fa-satellite-dish"></i>
+                        </div>
+                        <div class="provider-name">DSTV</div>
+                    </div>
+                    <div class="provider-card" data-provider="gotv">
+                        <div class="provider-logo gotv">
+                            <i class="fas fa-tv"></i>
+                        </div>
+                        <div class="provider-name">GOTV</div>
+                    </div>
+                    <div class="provider-card" data-provider="startimes">
+                        <div class="provider-logo startimes">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </div>
+                        <div class="provider-name">STARTIMES</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Package</label>
+                <select class="form-select" id="package-select" required disabled>
+                    <option value="" selected disabled>Select Package</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">IUC/Smart Card Number</label>
+                <input type="text" class="form-input" id="smart-card-number" placeholder="Enter IUC/Smart Card Number" required>
+            </div>
+            
+            <button type="submit" class="primary-btn" id="pay-now-btn" disabled>
+                <i class="fas fa-credit-card"></i>
+                Pay Now
+            </button>
+        </form>
+        
+        <!-- Popular Plans -->
+        <div class="popular-plans">
+            <div class="popular-plans-title">Popular Plans</div>
+            <div class="plans-grid" id="popular-plans-grid">
+                <!-- Plans will be populated dynamically based on selected provider -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item active" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal">
+            <div class="modal-close" id="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-tv"></i>
+            </div>
+            <div class="modal-title">Confirm Subscription</div>
+            <div class="modal-description">
+                Please review your cable TV subscription details
+            </div>
+            
+            <div class="confirmation-details">
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Provider</div>
+                    <div class="confirmation-value" id="confirm-provider">DSTV</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Package</div>
+                    <div class="confirmation-value" id="confirm-package">DSTV Premium</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Smart Card Number</div>
+                    <div class="confirmation-value" id="confirm-number">12345678901</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Amount</div>
+                    <div class="confirmation-value" id="confirm-amount">₦24,500</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="cancel-purchase">
+                    Cancel
+                </button>
+                <button class="modal-btn confirm" id="confirm-purchase">
+                    <i class="fas fa-check-circle"></i>
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script>
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setNavIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setNavIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+                
+                // In a real app, you would navigate to the corresponding page
+                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
+            });
+        });
+        
+        // Provider card click handler
+        const providerCards = document.querySelectorAll('.provider-card');
+        const selectedProviderDisplay = document.getElementById('selected-provider-display');
+        const packageSelect = document.getElementById('package-select');
+        const payNowBtn = document.getElementById('pay-now-btn');
+        const popularPlansGrid = document.getElementById('popular-plans-grid');
+        
+        // Package data by provider
+        const packageData = {
+            dstv: [
+                { id: 'dstv-premium', name: 'DSTV Premium', price: '₦24,500', description: 'All channels + Premium Sports' },
+                { id: 'dstv-compact-plus', name: 'DSTV Compact Plus', price: '₦16,600', description: 'Entertainment + Sports' },
+                { id: 'dstv-compact', name: 'DSTV Compact', price: '₦10,500', description: 'Family Entertainment' },
+                { id: 'dstv-confam', name: 'DSTV Confam', price: '₦6,200', description: 'Basic Entertainment' },
+                { id: 'dstv-yanga', name: 'DSTV Yanga', price: '₦3,500', description: 'Local Entertainment' }
+            ],
+            gotv: [
+                { id: 'gotv-max', name: 'GOtv Max', price: '₦4,850', description: 'Premium Entertainment' },
+                { id: 'gotv-jolli', name: 'GOtv Jolli', price: '₦3,300', description: 'Family Entertainment' },
+                { id: 'gotv-jinja', name: 'GOtv Jinja', price: '₦2,250', description: 'Basic Entertainment' },
+                { id: 'gotv-smallie', name: 'GOtv Smallie', price: '₦900', description: 'Monthly Mini Package' }
+            ],
+            startimes: [
+                { id: 'startimes-nova', name: 'StarTimes Nova', price: '₦1,200', description: 'Basic Entertainment' },
+                { id: 'startimes-basic', name: 'StarTimes Basic', price: '₦1,850', description: 'Family Entertainment' },
+                { id: 'startimes-smart', name: 'StarTimes Smart', price: '₦2,600', description: 'Premium Entertainment' },
+                { id: 'startimes-super', name: 'StarTimes Super', price: '₦4,900', description: 'All Channels' }
+            ]
+        };
+        
+        // Popular plans by provider
+        const popularPlans = {
+            dstv: [
+                { id: 'dstv-premium', name: 'DSTV Premium', price: '₦24,500', description: 'All channels including Premium Sports' },
+                { id: 'dstv-compact-plus', name: 'DSTV Compact Plus', price: '₦16,600', description: 'Entertainment + Sports' }
+            ],
+            gotv: [
+                { id: 'gotv-max', name: 'GOtv Max', price: '₦4,850', description: 'Premium Entertainment' },
+                { id: 'gotv-jolli', name: 'GOtv Jolli', price: '₦3,300', description: 'Family Entertainment' }
+            ],
+            startimes: [
+                { id: 'startimes-super', name: 'StarTimes Super', price: '₦4,900', description: 'All Channels' },
+                { id: 'startimes-smart', name: 'StarTimes Smart', price: '₦2,600', description: 'Premium Entertainment' }
+            ]
+        };
+        
+        // Update package select options based on provider
+        function updatePackageOptions(provider) {
+            // Clear existing options
+            packageSelect.innerHTML = '<option value="" selected disabled>Select Package</option>';
+            
+            // Add new options based on provider
+            if (provider) {
+                packageData[provider].forEach(pkg => {
+                    const option = document.createElement('option');
+                    option.value = pkg.id;
+                    option.textContent = `${pkg.name} - ${pkg.price}`;
+                    option.dataset.price = pkg.price;
+                    packageSelect.appendChild(option);
+                });
+                
+                // Enable select
+                packageSelect.disabled = false;
+                
+                // Update popular plans
+                updatePopularPlans(provider);
+            } else {
+                packageSelect.disabled = true;
+                payNowBtn.disabled = true;
+            }
+        }
+        
+        // Update popular plans based on provider
+        function updatePopularPlans(provider) {
+            // Clear existing plans
+            popularPlansGrid.innerHTML = '';
+            
+            // Add new plans based on provider
+            if (provider) {
+                popularPlans[provider].forEach(plan => {
+                    const planCard = document.createElement('div');
+                    planCard.className = 'plan-card';
+                    planCard.dataset.plan = plan.id;
+                    
+                    planCard.innerHTML = `
+                        <div class="plan-provider ${provider}">${provider.toUpperCase()}</div>
+                        <div class="plan-name">${plan.name}</div>
+                        <div class="plan-description">${plan.description}</div>
+                        <div class="plan-price">${plan.price}</div>
+                    `;
+                    
+                    // Add click event to select this plan
+                    planCard.addEventListener('click', function() {
+                        // Find and select the corresponding package in the dropdown
+                        Array.from(packageSelect.options).forEach(option => {
+                            if (option.value === plan.id) {
+                                packageSelect.value = plan.id;
+                                // Enable pay button
+                                payNowBtn.disabled = false;
+                                showToast('success', 'Package Selected', `Selected ${plan.name}`);
+                            }
+                        });
+                    });
+                    
+                    popularPlansGrid.appendChild(planCard);
+                });
+            }
+        }
+        
+        providerCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                providerCards.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Get provider details
+                const provider = this.dataset.provider;
+                const providerName = this.querySelector('.provider-name').textContent;
+                const providerLogoClass = this.querySelector('.provider-logo').classList[1];
+                
+                // Update selected provider display
+                selectedProviderDisplay.innerHTML = `
+                    <div class="selected-provider-logo ${providerLogoClass}">
+                        <i class="fas fa-${provider === 'dstv' ? 'satellite-dish' : provider === 'gotv' ? 'tv' : 'broadcast-tower'}"></i>
+                    </div>
+                    <div>${providerName}</div>
+                `;
+                selectedProviderDisplay.classList.add('active');
+                
+                // Update package options
+                updatePackageOptions(provider);
+                
+                showToast('success', 'Provider Selected', `Selected ${providerName}`);
+            });
+        });
+        
+        // Package select change handler
+        packageSelect.addEventListener('change', function() {
+            if (this.value) {
+                payNowBtn.disabled = false;
+                const selectedText = this.options[this.selectedIndex].text;
+                showToast('success', 'Package Selected', `Selected ${selectedText}`);
+            } else {
+                payNowBtn.disabled = true;
+            }
+        });
+        
+        // Form Submission
+        const cableForm = document.getElementById('cable-form');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelPurchase = document.getElementById('cancel-purchase');
+        const confirmPurchase = document.getElementById('confirm-purchase');
+        const confirmProvider = document.getElementById('confirm-provider');
+        const confirmPackage = document.getElementById('confirm-package');
+        const confirmNumber = document.getElementById('confirm-number');
+        const confirmAmount = document.getElementById('confirm-amount');
+        
+        cableForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const smartCardNumber = document.getElementById('smart-card-number').value;
+            
+            if (!smartCardNumber) {
+                showToast('error', 'Invalid Number', 'Please enter a valid Smart Card Number');
+                return;
+            }
+            
+            // Get selected provider
+            const activeProviderCard = document.querySelector('.provider-card.active');
+            if (!activeProviderCard) {
+                showToast('error', 'Provider Required', 'Please select a provider');
+                return;
+            }
+            
+            const providerName = activeProviderCard.querySelector('.provider-name').textContent;
+            
+            // Get selected package
+            if (!packageSelect.value) {
+                showToast('error', 'Package Required', 'Please select a package');
+                return;
+            }
+            
+            const packageText = packageSelect.options[packageSelect.selectedIndex].text;
+            const packagePrice = packageSelect.options[packageSelect.selectedIndex].dataset.price;
+            
+            // Update confirmation modal
+            confirmProvider.textContent = providerName;
+            confirmPackage.textContent = packageText.split(' - ')[0];
+            confirmNumber.textContent = smartCardNumber;
+            confirmAmount.textContent = packagePrice;
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+        });
+        
+        cancelPurchase.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+            showToast('info', 'Subscription Cancelled', 'Your cable TV subscription has been cancelled');
+        });
+        
+        confirmPurchase.addEventListener('click', function() {
+            // In a real app, you would process the purchase here
+            console.log('Processing subscription...');
+            
+            // Simulate processing
+            confirmPurchase.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            confirmPurchase.disabled = true;
+            
+            setTimeout(() => {
+                confirmationModal.classList.remove('show');
+                showToast('success', 'Subscription Successful', 'Your cable TV subscription has been processed successfully');
+                
+                // Reset form
+                cableForm.reset();
+                
+                // Reset provider selection
+                providerCards.forEach(c => c.classList.remove('active'));
+                selectedProviderDisplay.innerHTML = 'Select a provider below';
+                selectedProviderDisplay.classList.remove('active');
+                
+                // Reset package selection
+                packageSelect.innerHTML = '<option value="" selected disabled>Select Package</option>';
+                packageSelect.disabled = true;
+                payNowBtn.disabled = true;
+                
+                // Clear popular plans
+                popularPlansGrid.innerHTML = '';
+                
+                // Reset confirmation button
+                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
+                confirmPurchase.disabled = false;
+            }, 2000);
+        });
+        
+        // Live Users Count Animation
+        const liveUsersCount = document.querySelector('.live-users-count');
+        let count = 156;
+        
+        setInterval(() => {
+            // Random fluctuation in user count
+            const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            count = Math.max(100, count + change);
+            liveUsersCount.textContent = count;
+        }, 3000);
+        
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        });
+        
+        // Back button
+        document.querySelector('.back-button').addEventListener('click', function() {
+            showToast('info', 'Navigation', 'Returning to dashboard...');
+            setTimeout(() => {
+                window.location.href = 'vtu-dashboard.html';
+            }, 1000);
+        });
+        
+        // Toast Notification System
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    icon = 'x-circle';
+                    break;
+                case 'warning':
+                    icon = 'alert-triangle';
+                    break;
+                default:
+                    icon = 'info';
+            }
+            
+            // Set toast content
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <i class="fas fa-times"></i>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Add click event to close button
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.remove();
+            });
+            
+            // Auto remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 5500);
+        }
+        
+        // Show initial toast on page load
+        setTimeout(() => {
+            showToast('info', 'Welcome', 'Subscribe to your favorite cable TV packages with VeltraWave');
+        }, 1000);
+    </script>
+</body>
+</html>

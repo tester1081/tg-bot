@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - VeltraWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Contact Grid */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        /* Contact Form */
+        .contact-form-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-secondary);
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+        }
+        
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Contact Info & Admin Site */
+        .contact-info-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .contact-info-card, .admin-site-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-site-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            flex: 1;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        
+        .contact-info-list {
+            list-style: none;
+        }
+        
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .contact-info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        
+        .contact-details {
+            flex: 1;
+        }
+        
+        .contact-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .contact-value {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .admin-site-info {
+            margin-bottom: 24px;
+        }
+        
+        .admin-site-description {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .admin-credentials {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .credential-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .credential-label {
+            color: var(--text-secondary);
+        }
+        
+        .credential-value {
+            font-weight: 500;
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            position: relative;
+        }
+        
+        .status-indicator::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: var(--success);
+            opacity: 0.3;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.1;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+        }
+        
+        .status-text {
+            font-size: 0.9rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transform: translateX(120%);
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--error);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .toast.success .toast-icon {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .toast.warning .toast-icon {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fade-out {
+            0%, 80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2rem;
+            }
+            
+            .page-header p {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .contact-form-container,
+            .contact-info-card,
+            .admin-site-card {
+                padding: 20px;
+            }
+            
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="page-title">Contact Us</div>
+        <div style="width: 40px;"></div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Get in Touch</h1>
+            <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+        </div>
+        
+        <div class="contact-grid">
+            <!-- Contact Form -->
+            <div class="contact-form-container">
+                <h2 class="form-title">Send Us a Message</h2>
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" id="full-name" placeholder="Enter your full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="email" placeholder="Enter your email address" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-input" id="phone" placeholder="Enter your phone number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-input" id="subject" placeholder="What is this regarding?" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-textarea" id="message" placeholder="Type your message here..." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="primary-btn" id="submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        Send Message
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Contact Info & Admin Site -->
+            <div class="contact-info-container">
+                <!-- Contact Information -->
+                <div class="contact-info-card">
+                    <h2 class="card-title">Contact Information</h2>
+                    <ul class="contact-info-list">
+                        <li class="contact-info-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label">Email</div>
+                                <div class="contact-value">support@veltrawave.com</div>
+                            </div>
+                        </li>
+                        <li class="contact-info-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label">Phone</div>
+                                <div class="contact-value">+234 801 234 5678</div>
+                            </div>
+                        </li>
+                        <li class="contact-info-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label">Address</div>
+                                <div class="contact-value">123 Tech Plaza, Victoria Island, Lagos, Nigeria</div>
+                            </div>
+                        </li>
+                        <li class="contact-info-item">
+                            <div class="contact-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-label">Business Hours</div>
+                                <div class="contact-value">Monday - Friday: 8am - 6pm<br>Saturday: 9am - 3pm</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Admin Site Information -->
+                <div class="admin-site-card">
+                    <h2 class="card-title">Admin Portal</h2>
+                    
+                    <div class="live-status">
+                        <div class="status-indicator"></div>
+                        <div class="status-text">System Online</div>
+                    </div>
+                    
+                    <div class="admin-site-info">
+                        <p class="admin-site-description">
+                            Access the admin portal to manage your VeltraWave services, view transaction history, and contact support.
+                        </p>
+                    </div>
+                    
+                    <div class="admin-credentials">
+                        <div class="credential-item">
+                            <div class="credential-label">Admin URL</div>
+                            <div class="credential-value">admin.veltrawave.com</div>
+                        </div>
+                        <div class="credential-item">
+                            <div class="credential-label">Username</div>
+                            <div class="credential-value">your_username</div>
+                        </div>
+                    </div>
+                    
+                    <button class="primary-btn" id="admin-login-btn">
+                        <i class="fas fa-lock"></i>
+                        Access Admin Portal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item active" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script>
+        // Contact Form Submission
+        const contactForm = document.getElementById('contact-form');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        contactForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const fullName = document.getElementById('full-name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            
+            // Validate form (basic validation)
+            if (!fullName || !email || !subject || !message) {
+                showToast('error', 'Form Error', 'Please fill in all required fields');
+                return;
+            }
+            
+            // Show processing state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            // Simulate form submission
+            setTimeout(() => {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                
+                // Show success message
+                showToast('success', 'Message Sent', 'Your message has been sent successfully. We\'ll get back to you soon!');
+                
+                // Reset form
+                contactForm.reset();
+            }, 2000);
+        });
+        
+        // Admin Login Button
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        
+        adminLoginBtn.addEventListener('click', function() {
+            showToast('info', 'Redirecting', 'Redirecting to admin portal...');
+            
+            // Simulate redirection
+            setTimeout(() => {
+                window.location.href = 'admin-login.html';
+            }, 1500);
+        });
+        
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setNavIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setNavIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+                
+                // In a real app, you would navigate to the corresponding page
+                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
+            });
+        });
+        
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        });
+        
+        // Back button
+        document.querySelector('.back-button').addEventListener('click', function() {
+            showToast('info', 'Navigation', 'Returning to dashboard...');
+            setTimeout(() => {
+                window.location.href = 'vtu-dashboard.html';
+            }, 1000);
+        });
+        
+        // Toast Notification System
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    icon = 'x-circle';
+                    break;
+                case 'warning':
+                    icon = 'alert-triangle';
+                    break;
+                default:
+                    icon = 'info';
+            }
+            
+            // Set toast content
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <i class="fas fa-times"></i>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Add click event to close button
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.remove();
+            });
+            
+            // Auto remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 5500);
+        }
+        
+        // Show initial toast on page load
+        setTimeout(() => {
+            showToast('info', 'Welcome', 'Contact us with any questions or visit the admin portal');
+        }, 1000);
+    </script>
+</body>
+</html>
+

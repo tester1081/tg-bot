@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Top Up - VeltraWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+            --cod-green: #00A651;
+            --ff-red: #FF0000;
+            --df-blue: #0077C8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Game Tabs */
+        .game-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .game-tab.active {
+            color: white;
+        }
+        
+        .game-tab:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .game-tab-indicator {
+            position: absolute;
+            height: 100%;
+            width: calc(100% / 3);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+        
+        /* Game Content */
+        .game-content {
+            display: none;
+        }
+        
+        .game-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Game Header */
+        .game-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .game-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+        
+        .game-logo.cod {
+            background: var(--cod-green);
+        }
+        
+        .game-logo.ff {
+            background: var(--ff-red);
+        }
+        
+        .game-logo.df {
+            background: var(--df-blue);
+        }
+        
+        .game-info {
+            flex: 1;
+        }
+        
+        .game-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .game-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Section Tabs */
+        .section-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .section-tab.active {
+            color: white;
+        }
+        
+        .section-tab:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .section-tab-indicator {
+            position: absolute;
+            height: 100%;
+            width: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+        
+        /* Section Content */
+        .section-content {
+            display: none;
+        }
+        
+        .section-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-secondary);
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+        }
+        
+        .form-select option {
+            background: #1A2035;
+            color: white;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Info Card */
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .info-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-card-title i {
+            color: var(--primary);
+        }
+        
+        .info-card-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Package Cards */
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .package-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .package-card.active {
+            border-color: var(--primary);
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .package-card:hover:not(.active) {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .package-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 8px;
+            z-index: 2;
+        }
+        
+        .package-badge.hot {
+            background: var(--error);
+        }
+        
+        .package-badge.best {
+            background: var(--success);
+        }
+        
+        .package-badge.exclusive {
+            background: var(--secondary);
+        }
+        
+        .package-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .package-bonus {
+            font-size: 0.8rem;
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        
+        .package-stock {
+            font-size: 0.8rem;
+            color: var(--warning);
+            margin-bottom: 4px;
+        }
+        
+        .package-purchased {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .package-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .package-discount {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .package-old-price {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+        
+        .package-new-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        /* Featured Package */
+        .featured-package {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .featured-badge {
+            position: absolute;
+            top: 16px;
+            right: -30px;
+            background: var(--success);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 40px;
+            transform: rotate(45deg);
+            z-index: 2;
+        }
+        
+        .featured-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .featured-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--success);
+        }
+        
+        .featured-info {
+            flex: 1;
+        }
+        
+        .featured-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .featured-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        
+        .featured-price {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 16px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .progress-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .progress-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .empty-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        /* Coming Soon */
+        .coming-soon {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .coming-soon-icon {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        
+        .coming-soon-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .coming-soon-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 16px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .modal-description {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .confirmation-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .confirmation-label {
+            color: var(--text-secondary);
+        }
+        
+        .confirmation-value {
+            font-weight: 500;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transform: translateX(120%);
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--error);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .toast.success .toast-icon {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .toast.warning .toast-icon {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fade-out {
+            0%, 80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .packages-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .featured-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .featured-icon {
+                margin: 0 auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-tab {
+                font-size: 0.9rem;
+                padding: 12px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="page-title">Game Top Up</div>
+        <div style="width: 40px;"></div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Game Tabs -->
+        <div class="game-tabs">
+            <div class="game-tab-indicator"></div>
+            <div class="game-tab active" data-game="cod">Call of Duty</div>
+            <div class="game-tab" data-game="ff">Free Fire</div>
+            <div class="game-tab" data-game="df">Delta Force</div>
+        </div>
+        
+        <!-- COD Content -->
+        <div class="game-content active" id="cod-content">
+            <div class="game-header">
+                <div class="game-logo cod">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <div class="game-info">
+                    <div class="game-name">Call of Duty</div>
+                    <div class="game-description">Purchase CP (COD Points) for Call of Duty Mobile</div>
+                </div>
+            </div>
+            
+            <!-- Section Tabs -->
+            <div class="section-tabs">
+                <div class="section-tab-indicator"></div>
+                <div class="section-tab active" data-section="top-up">Top Up</div>
+                <div class="section-tab" data-section="purchases">My Purchases</div>
+            </div>
+            
+            <!-- Top Up Section -->
+            <div class="section-content active" id="cod-top-up">
+                <!-- UID Info -->
+                <div class="info-card">
+                    <div class="info-card-title">
+                        <i class="fas fa-info-circle"></i>
+                        How to find your UID
+                    </div>
+                    <div class="info-card-content">
+                        Your UID can be found in your profile. Open COD Mobile, tap on your profile picture, and look for the UID number.
+                    </div>
+                </div>
+                
+                <!-- UID Form -->
+                <form id="cod-form">
+                    <div class="form-group">
+                        <label class="form-label">Enter your COD Mobile UID</label>
+                        <input type="text" class="form-input" id="cod-uid" placeholder="Enter your 12-digit UID" required>
+                        <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; display: block;">Enter your 12-digit UID found in your profile.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Shortened UID (8 digits)</label>
+                        <input type="text" class="form-input" id="cod-short-uid" placeholder="Auto-generated" disabled>
+                        <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; display: block;">This is the 8-digit UID that will be used for your purchase.</small>
+                    </div>
+                    
+                    <!-- Featured Package -->
+                    <div class="featured-package">
+                        <div class="featured-badge">BEST DEAL</div>
+                        <div class="featured-content">
+                            <div class="featured-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="featured-info">
+                                <div class="featured-title">54000 CP</div>
+                                <div class="featured-description">Unlock everything in the game!</div>
+                                <div class="featured-price">₦697,950</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Select CP Package</label>
+                        <select class="form-select" id="cod-package" required>
+                            <option value="" selected disabled>Select CP Package</option>
+                            <option value="30cp">30 CP - ₦594</option>
+                            <option value="80cp">80 CP - ₦1,485</option>
+                            <option value="420cp">420 CP - ₦7,425 (HOT DEAL)</option>
+                            <option value="880cp">880 CP - ₦14,850</option>
+                            <option value="2400cp">2400 CP - ₦37,125 (BEST VALUE)</option>
+                            <option value="5000cp">5000 CP - ₦74,250</option>
+                            <option value="10800cp">10800 CP - ₦148,500 (EXCLUSIVE)</option>
+                            <option value="21600cp">21600 CP - ₦289,575</option>
+                            <option value="32400cp">32400 CP - ₦430,650</option>
+                            <option value="43200cp">43200 CP - ₦564,300</option>
+                            <option value="54000cp">54000 CP - ₦697,950 (BEST VALUE)</option>
+                            <option value="battlepass">Battle Pass - ₦6,660</option>
+                            <option value="battlepassbundle">Battle Pass Bundle - ₦16,335 (10% OFF)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- CP Packages Grid -->
+                    <div class="packages-grid">
+                        <div class="package-card" data-package="30cp">
+                            <div class="package-amount">30 CP</div>
+                            <div class="package-price">₦594</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="80cp">
+                            <div class="package-amount">80 CP</div>
+                            <div class="package-price">₦1,485</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="420cp">
+                            <div class="package-badge hot">HOT DEAL</div>
+                            <div class="package-amount">420 CP</div>
+                            <div class="package-stock">Only 47 left</div>
+                            <div class="package-purchased">97 bought</div>
+                            <div class="package-price">₦7,425</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="880cp">
+                            <div class="package-amount">880 CP</div>
+                            <div class="package-price">₦14,850</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="2400cp">
+                            <div class="package-badge best">BEST VALUE</div>
+                            <div class="package-amount">2400 CP</div>
+                            <div class="package-stock">Only 28 left</div>
+                            <div class="package-purchased">80 bought</div>
+                            <div class="package-discount">
+                                <div class="package-old-price">₦39,999</div>
+                                <div class="package-new-price">₦37,125</div>
+                            </div>
+                        </div>
+                        
+                        <div class="package-card" data-package="5000cp">
+                            <div class="package-amount">5000 CP</div>
+                            <div class="package-price">₦74,250</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="10800cp">
+                            <div class="package-badge exclusive">EXCLUSIVE</div>
+                            <div class="package-amount">10800 CP</div>
+                            <div class="package-price">₦148,500</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="21600cp">
+                            <div class="package-amount">21600 CP</div>
+                            <div class="package-price">₦289,575</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="32400cp">
+                            <div class="package-amount">32400 CP</div>
+                            <div class="package-price">₦430,650</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="43200cp">
+                            <div class="package-amount">43200 CP</div>
+                            <div class="package-price">₦564,300</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="54000cp">
+                            <div class="package-badge best">BEST VALUE</div>
+                            <div class="package-amount">54000 CP</div>
+                            <div class="package-purchased">96 bought</div>
+                            <div class="package-price">₦697,950</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="battlepass">
+                            <div class="package-amount">Battle Pass</div>
+                            <div class="package-price">₦6,660</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="battlepassbundle">
+                            <div class="package-badge">10% OFF</div>
+                            <div class="package-amount">Battle Pass Bundle</div>
+                            <div class="package-stock">Only 15 left</div>
+                            <div class="package-purchased">90 bought</div>
+                            <div class="package-discount">
+                                <div class="package-old-price">₦18,150</div>
+                                <div class="package-new-price">₦16,335</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="primary-btn" id="cod-purchase-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Purchase Now
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Purchases Section -->
+            <div class="section-content" id="cod-purchases">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="empty-title">No purchases yet</div>
+                    <div class="empty-description">Your purchase history will appear here once you make a purchase.</div>
+                    <button class="primary-btn" id="make-purchase-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Make a Purchase
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Free Fire Content -->
+        <div class="game-content" id="ff-content">
+            <div class="game-header">
+                <div class="game-logo ff">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="game-info">
+                    <div class="game-name">Free Fire</div>
+                    <div class="game-description">Purchase diamonds for Free Fire MENA servers</div>
+                </div>
+            </div>
+            
+            <!-- Section Tabs -->
+            <div class="section-tabs">
+                <div class="section-tab-indicator"></div>
+                <div class="section-tab active" data-section="top-up">Top Up</div>
+                <div class="section-tab" data-section="purchases">My Purchases</div>
+            </div>
+            
+            <!-- Top Up Section -->
+            <div class="section-content active" id="ff-top-up">
+                <!-- Manual Processing Info -->
+                <div class="info-card">
+                    <div class="info-card-title">
+                        <i class="fas fa-info-circle"></i>
+                        Manual Processing
+                    </div>
+                    <div class="info-card-content">
+                        Free Fire top-ups are currently processed manually by our admin team. This may take up to 30 minutes to complete during business hours.
+                    </div>
+                </div>
+                
+                <!-- Vote for Automatic Processing -->
+                <div class="info-card">
+                    <div class="info-card-title">
+                        <i class="fas fa-vote-yea"></i>
+                        Vote for Automatic Processing
+                    </div>
+                    <div class="info-card-content">
+                        We're considering adding automatic processing for Free Fire top-ups. Vote to help us prioritize this feature!
+                    </div>
+                    
+                    <div class="progress-container" style="margin-top: 12px;">
+                        <div class="progress-header">
+                            <div class="progress-title">342 votes</div>
+                            <div class="progress-value">Goal: 500 votes</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 68%;"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="primary-btn" id="vote-btn" style="margin-top: 12px;">
+                        <i class="fas fa-thumbs-up"></i>
+                        Vote Now
+                    </button>
+                    
+                    <div id="vote-thanks" style="display: none; text-align: center; margin-top: 12px; color: var(--success);">
+                        <i class="fas fa-check-circle"></i> Thanks for voting!
+                    </div>
+                </div>
+                
+                <!-- Player ID Info -->
+                <div class="info-card">
+                    <div class="info-card-title">
+                        <i class="fas fa-info-circle"></i>
+                        How to find your Player ID
+                    </div>
+                    <div class="info-card-content">
+                        Your Player ID can be found in your profile. Open Free Fire, tap on your profile picture in the top-left corner, and look for the ID number.
+                    </div>
+                </div>
+                
+                <!-- Player ID Form -->
+                <form id="ff-form">
+                    <div class="form-group">
+                        <label class="form-label">Enter your Free Fire Player ID</label>
+                        <input type="text" class="form-input" id="ff-player-id" placeholder="Enter your Player ID" required>
+                        <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; display: block;">Enter your Player ID found in your profile. MENA servers only.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Select Diamond Package</label>
+                        <select class="form-select" id="ff-package" required>
+                            <option value="" selected disabled>Select Diamond Package</option>
+                            <option value="530diamonds">530 Diamonds (+53 Free) - ₦2,475 (HOT DEAL)</option>
+                            <option value="1080diamonds">1,080 Diamonds (+108 Free) - ₦4,950</option>
+                            <option value="2200diamonds">2,200 Diamonds (+220 Free) - ₦9,900 (BEST VALUE)</option>
+                            <option value="5600diamonds">5,600 Diamonds (+560 Free) - ₦24,750 (EXCLUSIVE)</option>
+                            <option value="weeklymembership">Weekly Membership - ₦990 (HOT DEAL)</option>
+                            <option value="monthlymembership">Monthly Membership - ₦3,960 (HOT DEAL)</option>
+                            <option value="leveluppass">Level Up Pass - ₦2,475 (NEW)</option>
+                            <option value="booyahpass">Booyah Pass Card - ₦4,950</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Diamond Packages Grid -->
+                    <div class="packages-grid">
+                        <div class="package-card" data-package="530diamonds">
+                            <div class="package-badge hot">HOT DEAL</div>
+                            <div class="package-amount">530 Diamonds</div>
+                            <div class="package-bonus">+53 Free</div>
+                            <div class="package-purchased">71 bought</div>
+                            <div class="package-price">₦2,475</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="1080diamonds">
+                            <div class="package-amount">1,080 Diamonds</div>
+                            <div class="package-bonus">+108 Free</div>
+                            <div class="package-price">₦4,950</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="2200diamonds">
+                            <div class="package-badge best">BEST VALUE</div>
+                            <div class="package-amount">2,200 Diamonds</div>
+                            <div class="package-bonus">+220 Free</div>
+                            <div class="package-stock">Only 32 left</div>
+                            <div class="package-purchased">92 bought</div>
+                            <div class="package-price">₦9,900</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="5600diamonds">
+                            <div class="package-badge exclusive">EXCLUSIVE</div>
+                            <div class="package-amount">5,600 Diamonds</div>
+                            <div class="package-bonus">+560 Free</div>
+                            <div class="package-price">₦24,750</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="weeklymembership">
+                            <div class="package-badge hot">HOT DEAL</div>
+                            <div class="package-amount">Weekly Membership</div>
+                            <div class="package-purchased">81 bought</div>
+                            <div class="package-price">₦990</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="monthlymembership">
+                            <div class="package-badge hot">HOT DEAL</div>
+                            <div class="package-amount">Monthly Membership</div>
+                            <div class="package-price">₦3,960</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="leveluppass">
+                            <div class="package-badge">NEW</div>
+                            <div class="package-amount">Level Up Pass</div>
+                            <div class="package-purchased">56 bought</div>
+                            <div class="package-price">₦2,475</div>
+                        </div>
+                        
+                        <div class="package-card" data-package="booyahpass">
+                            <div class="package-amount">Booyah Pass Card</div>
+                            <div class="package-price">₦4,950</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="primary-btn" id="ff-purchase-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Purchase Now
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Purchases Section -->
+            <div class="section-content" id="ff-purchases">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="empty-title">No purchases yet</div>
+                    <div class="empty-description">Your purchase history will appear here once you make a purchase.</div>
+                    <button class="primary-btn" id="make-ff-purchase-btn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Make a Purchase
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delta Force Content -->
+        <div class="game-content" id="df-content">
+            <div class="game-header">
+                <div class="game-logo df">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="game-info">
+                    <div class="game-name">Delta Force</div>
+                    <div class="game-description">Purchase in-game currency for Delta Force</div>
+                </div>
+            </div>
+            
+            <div class="coming-soon">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="coming-soon-title">Coming Soon</div>
+                <div class="coming-soon-description">
+                    Delta Force top-ups will be available soon. We're working hard to bring you the best gaming experience!
+                </div>
+                <button class="primary-btn" id="notify-btn">
+                    <i class="fas fa-bell"></i>
+                    Notify Me When Available
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item active" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal">
+            <div class="modal-close" id="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-gamepad"></i>
+            </div>
+            <div class="modal-title">Confirm Purchase</div>
+            <div class="modal-description">
+                Please review your game top-up details
+            </div>
+            
+            <div class="confirmation-details">
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Game</div>
+                    <div class="confirmation-value" id="confirm-game">Call of Duty Mobile</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Player ID</div>
+                    <div class="confirmation-value" id="confirm-id">123456789012</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Package</div>
+                    <div class="confirmation-value" id="confirm-package">2400 CP</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Amount</div>
+                    <div class="confirmation-value" id="confirm-amount">₦37,125</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="cancel-purchase">
+                    Cancel
+                </button>
+                <button class="modal-btn confirm" id="confirm-purchase">
+                    <i class="fas fa-check-circle"></i>
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script>
+        // Game Tabs
+        const gameTabs = document.querySelectorAll('.game-tab');
+        const gameTabIndicator = document.querySelector('.game-tab-indicator');
+        const gameContents = document.querySelectorAll('.game-content');
+        
+        // Set initial game tab indicator position
+        function setGameTabIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const tabsRect = document.querySelector('.game-tabs').getBoundingClientRect();
+            
+            gameTabIndicator.style.width = `${itemRect.width}px`;
+            gameTabIndicator.style.left = `${itemRect.left - tabsRect.left}px`;
+        }
+        
+        // Set initial position
+        setGameTabIndicatorPosition(document.querySelector('.game-tab.active'));
+        
+        // Game tab click handler
+        gameTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                gameTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Move indicator
+                setGameTabIndicatorPosition(this);
+                
+                // Show corresponding content
+                const game = this.dataset.game;
+                gameContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${game}-content`) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                showToast('info', 'Game Changed', `Switched to ${this.textContent} top-up`);
+            });
+        });
+        
+        // Section Tabs
+        const sectionTabs = document.querySelectorAll('.section-tab');
+        const sectionTabIndicators = document.querySelectorAll('.section-tab-indicator');
+        const sectionContents = document.querySelectorAll('.section-content');
+        
+        // Set initial section tab indicator position
+        function setSectionTabIndicatorPosition(item, indicator) {
+            const itemRect = item.getBoundingClientRect();
+            const tabsRect = item.parentElement.getBoundingClientRect();
+            
+            indicator.style.width = `${itemRect.width}px`;
+            indicator.style.left = `${itemRect.left - tabsRect.left}px`;
+        }
+        
+        // Set initial positions
+        document.querySelectorAll('.section-tabs').forEach(tabGroup => {
+            const activeTab = tabGroup.querySelector('.section-tab.active');
+            const indicator = tabGroup.querySelector('.section-tab-indicator');
+            setSectionTabIndicatorPosition(activeTab, indicator);
+        });
+        
+        // Section tab click handler
+        sectionTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Get parent tab group
+                const tabGroup = this.parentElement;
+                
+                // Remove active class from all tabs in this group
+                tabGroup.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Move indicator
+                const indicator = tabGroup.querySelector('.section-tab-indicator');
+                setSectionTabIndicatorPosition(this, indicator);
+                
+                // Show corresponding content
+                const section = this.dataset.section;
+                const game = tabGroup.closest('.game-content').id.split('-')[0];
+                
+                document.querySelectorAll(`#${game}-content .section-content`).forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${game}-${section}`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // Package Cards
+        const packageCards = document.querySelectorAll('.package-card');
+        
+        packageCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Get parent game content
+                const gameContent = this.closest('.game-content');
+                const gameId = gameContent.id.split('-')[0];
+                
+                // Remove active class from all cards in this game
+                gameContent.querySelectorAll('.package-card').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Update select dropdown
+                const packageSelect = document.getElementById(`${gameId}-package`);
+                packageSelect.value = this.dataset.package;
+                
+                // Show toast
+                const packageName = this.querySelector('.package-amount').textContent;
+                const packagePrice = this.querySelector('.package-price') ? 
+                                    this.querySelector('.package-price').textContent : 
+                                    (this.querySelector('.package-new-price') ? 
+                                    this.querySelector('.package-new-price').textContent : '');
+                
+                showToast('success', 'Package Selected', `Selected ${packageName} for ${packagePrice}`);
+            });
+        });
+        
+        // COD UID Input
+        const codUidInput = document.getElementById('cod-uid');
+        const codShortUidInput = document.getElementById('cod-short-uid');
+        
+        codUidInput.addEventListener('input', function() {
+            // Generate shortened UID (last 8 digits)
+            if (this.value.length >= 8) {
+                codShortUidInput.value = this.value.slice(-8);
+            } else {
+                codShortUidInput.value = '';
+            }
+        });
+        
+        // Vote Button
+        const voteBtn = document.getElementById('vote-btn');
+        const voteThanks = document.getElementById('vote-thanks');
+        
+        voteBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            setTimeout(() => {
+                this.style.display = 'none';
+                voteThanks.style.display = 'block';
+                
+                // Update progress
+                const progressFill = document.querySelector('.progress-fill');
+                const progressTitle = document.querySelector('.progress-title');
+                
+                progressFill.style.width = '69%';
+                progressTitle.textContent = '343 votes';
+                
+                showToast('success', 'Vote Recorded', 'Thanks for voting! We\'ll prioritize this feature.');
+            }, 1000);
+        });
+        
+        // Make Purchase Button
+        const makePurchaseBtn = document.getElementById('make-purchase-btn');
+        const makeFFPurchaseBtn = document.getElementById('make-ff-purchase-btn');
+        
+        makePurchaseBtn.addEventListener('click', function() {
+            // Switch to top-up tab
+            const topUpTab = document.querySelector('#cod-content .section-tab[data-section="top-up"]');
+            topUpTab.click();
+        });
+        
+        makeFFPurchaseBtn.addEventListener('click', function() {
+            // Switch to top-up tab
+            const topUpTab = document.querySelector('#ff-content .section-tab[data-section="top-up"]');
+            topUpTab.click();
+        });
+        
+        // Notify Button
+        const notifyBtn = document.getElementById('notify-btn');
+        
+        notifyBtn.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-check-circle"></i> You\'ll Be Notified';
+                showToast('success', 'Notification Set', 'We\'ll notify you when Delta Force top-ups are available.');
+            }, 1000);
+        });
+        
+        // Form Submission
+        const codForm = document.getElementById('cod-form');
+        const ffForm = document.getElementById('ff-form');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelPurchase = document.getElementById('cancel-purchase');
+        const confirmPurchase = document.getElementById('confirm-purchase');
+        const confirmGame = document.getElementById('confirm-game');
+        const confirmId = document.getElementById('confirm-id');
+        const confirmPackage = document.getElementById('confirm-package');
+        const confirmAmount = document.getElementById('confirm-amount');
+        
+        codForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const uid = document.getElementById('cod-uid').value;
+            const packageSelect = document.getElementById('cod-package');
+            
+            if (!uid || uid.length !== 12) {
+                showToast('error', 'Invalid UID', 'Please enter a valid 12-digit UID');
+                return;
+            }
+            
+            if (!packageSelect.value) {
+                showToast('error', 'Package Required', 'Please select a CP package');
+                return;
+            }
+            
+            // Get selected package details
+            const packageText = packageSelect.options[packageSelect.selectedIndex].text;
+            const packageName = packageText.split(' - ')[0];
+            const packagePrice = packageText.split(' - ')[1].split(' ')[0];
+            
+            // Update confirmation modal
+            confirmGame.textContent = 'Call of Duty Mobile';
+            confirmId.textContent = uid;
+            confirmPackage.textContent = packageName;
+            confirmAmount.textContent = packagePrice;
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        ffForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const playerId = document.getElementById('ff-player-id').value;
+            const packageSelect = document.getElementById('ff-package');
+            
+            if (!playerId) {
+                showToast('error', 'Invalid Player ID', 'Please enter a valid Player ID');
+                return;
+            }
+            
+            if (!packageSelect.value) {
+                showToast('error', 'Package Required', 'Please select a Diamond package');
+                return;
+            }
+            
+            // Get selected package details
+            const packageText = packageSelect.options[packageSelect.selectedIndex].text;
+            const packageName = packageText.split(' - ')[0];
+            const packagePrice = packageText.split(' - ')[1].split(' ')[0];
+            
+            // Update confirmation modal
+            confirmGame.textContent = 'Free Fire';
+            confirmId.textContent = playerId;
+            confirmPackage.textContent = packageName;
+            confirmAmount.textContent = packagePrice;
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+        });
+        
+        cancelPurchase.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+            showToast('info', 'Purchase Cancelled', 'Your game top-up has been cancelled');
+        });
+        
+        confirmPurchase.addEventListener('click', function() {
+            // In a real app, you would process the purchase here
+            console.log('Processing purchase...');
+            
+            // Simulate processing
+            confirmPurchase.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            confirmPurchase.disabled = true;
+            
+            setTimeout(() => {
+                confirmationModal.classList.remove('show');
+                showToast('success', 'Purchase Successful', 'Your game top-up has been processed successfully');
+                
+                // Reset forms
+                codForm.reset();
+                ffForm.reset();
+                
+                // Reset package selection
+                packageCards.forEach(c => c.classList.remove('active'));
+                
+                // Reset confirmation button
+                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
+                confirmPurchase.disabled = false;
+                
+                // Switch to purchases tab
+                const activeGame = document.querySelector('.game-content.active').id.split('-')[0];
+                const purchasesTab = document.querySelector(`#${activeGame}-content .section-tab[data-section="purchases"]`);
+                purchasesTab.click();
+            }, 2000);
+        });
+        
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setNavIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setNavIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+                
+                // In a real app, you would navigate to the corresponding page
+                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
+            });
+        });
+        
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+            setGameTabIndicatorPosition(document.querySelector('.game-tab.active'));
+            
+            document.querySelectorAll('.section-tabs').forEach(tabGroup => {
+                const activeTab = tabGroup.querySelector('.section-tab.active');
+                const indicator = tabGroup.querySelector('.section-tab-indicator');
+                setSectionTabIndicatorPosition(activeTab, indicator);
+            });
+        });
+        
+        // Back button
+        document.querySelector('.back-button').addEventListener('click', function() {
+            showToast('info', 'Navigation', 'Returning to dashboard...');
+            setTimeout(() => {
+                window.location.href = 'vtu-dashboard.html';
+            }, 1000);
+        });
+        
+        // Toast Notification System
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    icon = 'x-circle';
+                    break;
+                case 'warning':
+                    icon = 'alert-triangle';
+                    break;
+                default:
+                    icon = 'info';
+            }
+            
+            // Set toast content
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <i class="fas fa-times"></i>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Add click event to close button
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.remove();
+            });
+            
+            // Auto remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 5500);
+        }
+        
+        // Show initial toast on page load
+        setTimeout(() => {
+            showToast('info', 'Welcome', 'Top up your favorite games with VeltraWave');
+        }, 1000);
+    </script>
+</body>
+</html>

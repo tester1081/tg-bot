@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fund Wallet - VeltraWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Wallet Card */
+        .wallet-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .wallet-balance {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .wallet-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        
+        .wallet-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .wallet-action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .wallet-action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .wallet-action-btn.primary {
+            background: var(--primary);
+        }
+        
+        .wallet-action-btn.primary:hover {
+            background: var(--primary-light);
+        }
+        
+        /* Info Card */
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .info-card.warning {
+            background: rgba(255, 181, 71, 0.1);
+            border-color: rgba(255, 181, 71, 0.2);
+        }
+        
+        .info-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-card-title i {
+            color: var(--warning);
+        }
+        
+        .info-card-content {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-secondary);
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+        }
+        
+        .form-select option {
+            background: #1A2035;
+            color: white;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Quick Amount Buttons */
+        .quick-amounts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .amount-btn {
+            flex: 1;
+            min-width: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .amount-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .amount-btn.active {
+            background: rgba(45, 127, 249, 0.1);
+            border-color: var(--primary);
+        }
+        
+        /* Payment Methods */
+        .payment-methods {
+            margin-bottom: 24px;
+        }
+        
+        .payment-method-title {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .payment-methods-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        
+        .payment-method-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 100px;
+        }
+        
+        .payment-method-card.active {
+            border-color: var(--primary);
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .payment-method-card:hover:not(.active) {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .payment-method-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .payment-method-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        /* Fee Display */
+        .fee-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .fee-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .fee-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+        
+        .fee-label {
+            color: var(--text-secondary);
+        }
+        
+        .fee-value {
+            font-weight: 500;
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 16px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .modal-description {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .confirmation-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .confirmation-label {
+            color: var(--text-secondary);
+        }
+        
+        .confirmation-value {
+            font-weight: 500;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transform: translateX(120%);
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--error);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .toast.success .toast-icon {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .toast.warning .toast-icon {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fade-out {
+            0%, 80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        /* Paystack Modal */
+        .paystack-iframe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.9);
+            z-index: 2000;
+            display: none;
+        }
+        
+        .paystack-iframe-container.show {
+            display: block;
+        }
+        
+        .paystack-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .paystack-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2001;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .payment-methods-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .payment-methods-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .wallet-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="page-title">Fund Wallet</div>
+        <div style="width: 40px;"></div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Wallet Card -->
+        <div class="wallet-card">
+            <div class="wallet-balance">₦24,500.00</div>
+            <div class="wallet-label">Current Balance</div>
+            <div class="wallet-actions">
+                <button class="wallet-action-btn">
+                    <i class="fas fa-history"></i>
+                    Transaction History
+                </button>
+                <button class="wallet-action-btn">
+                    <i class="fas fa-share-alt"></i>
+                    Share Wallet
+                </button>
+            </div>
+        </div>
+        
+        <!-- Service Fee Notice -->
+        <div class="info-card warning">
+            <div class="info-card-title">
+                <i class="fas fa-info-circle"></i>
+                Service Fee Notice
+            </div>
+            <div class="info-card-content">
+                A service fee of ₦50 will be deducted from your deposit amount to cover transaction costs.
+            </div>
+        </div>
+        
+        <!-- Fund Wallet Form -->
+        <form id="fund-wallet-form">
+            <div class="form-group">
+                <label class="form-label">Enter Amount (₦)</label>
+                <input type="number" class="form-input" id="amount" placeholder="Enter amount" min="100" required>
+            </div>
+            
+            <div class="quick-amounts">
+                <div class="amount-btn" data-amount="1000">₦1,000</div>
+                <div class="amount-btn" data-amount="2000">₦2,000</div>
+                <div class="amount-btn" data-amount="5000">₦5,000</div>
+                <div class="amount-btn" data-amount="10000">₦10,000</div>
+                <div class="amount-btn" data-amount="20000">₦20,000</div>
+            </div>
+            
+            <!-- Payment Methods -->
+            <div class="payment-methods">
+                <div class="payment-method-title">Select Payment Method</div>
+                <div class="payment-methods-grid">
+                    <div class="payment-method-card active" data-method="card">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="payment-method-name">Card</div>
+                    </div>
+                    
+                    <div class="payment-method-card" data-method="bank">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="payment-method-name">Bank Transfer</div>
+                    </div>
+                    
+                    <div class="payment-method-card" data-method="ussd">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="payment-method-name">USSD</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fee Display -->
+            <div class="fee-display">
+                <div class="fee-item">
+                    <div class="fee-label">Amount</div>
+                    <div class="fee-value" id="display-amount">₦0.00</div>
+                </div>
+                <div class="fee-item">
+                    <div class="fee-label">Service Fee</div>
+                    <div class="fee-value">₦50.00</div>
+                </div>
+                <div class="fee-item">
+                    <div class="fee-label">Total</div>
+                    <div class="fee-value" id="display-total">₦50.00</div>
+                </div>
+            </div>
+            
+            <button type="submit" class="primary-btn" id="fund-wallet-btn">
+                <i class="fas fa-wallet"></i>
+                Fund Wallet
+            </button>
+        </form>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item active" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal">
+            <div class="modal-close" id="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="modal-title">Confirm Funding</div>
+            <div class="modal-description">
+                Please review your wallet funding details
+            </div>
+            
+            <div class="confirmation-details">
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Amount</div>
+                    <div class="confirmation-value" id="confirm-amount">₦1,000.00</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Service Fee</div>
+                    <div class="confirmation-value">₦50.00</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Payment Method</div>
+                    <div class="confirmation-value" id="confirm-method">Card</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Total</div>
+                    <div class="confirmation-value" id="confirm-total">₦1,050.00</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="cancel-funding">
+                    Cancel
+                </button>
+                <button class="modal-btn confirm" id="confirm-funding">
+                    <i class="fas fa-check-circle"></i>
+                    Proceed to Payment
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Paystack Iframe Container -->
+    <div class="paystack-iframe-container" id="paystack-container">
+        <div class="paystack-close" id="paystack-close">
+            <i class="fas fa-times"></i>
+        </div>
+        <div id="paystack-frame-container" style="width:100%; height:100%;"></div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script>
+        // Amount Input and Quick Amount Buttons
+        const amountInput = document.getElementById('amount');
+        const amountBtns = document.querySelectorAll('.amount-btn');
+        const displayAmount = document.getElementById('display-amount');
+        const displayTotal = document.getElementById('display-total');
+        
+        // Format currency function
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-NG', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+        
+        // Update display amounts
+        function updateAmountDisplay() {
+            const amount = parseFloat(amountInput.value) || 0;
+            const fee = 50;
+            const total = amount + fee;
+            
+            displayAmount.textContent = `₦${formatCurrency(amount)}`;
+            displayTotal.textContent = `₦${formatCurrency(total)}`;
+        }
+        
+        // Initialize display
+        updateAmountDisplay();
+        
+        amountInput.addEventListener('input', updateAmountDisplay);
+        
+        // Quick amount buttons
+        amountBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                amountBtns.forEach(b => b.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Update amount input
+                const amount = this.dataset.amount;
+                amountInput.value = amount;
+                
+                // Update display
+                updateAmountDisplay();
+                
+                showToast('info', 'Amount Selected', `₦${parseInt(amount).toLocaleString('en-NG')} selected`);
+            });
+        });
+        
+        // Payment Method Cards
+        const paymentMethodCards = document.querySelectorAll('.payment-method-card');
+        
+        paymentMethodCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                paymentMethodCards.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Show toast
+                const methodName = this.querySelector('.payment-method-name').textContent;
+                showToast('success', 'Payment Method', `${methodName} selected`);
+            });
+        });
+        
+        // Form Submission
+        const fundWalletForm = document.getElementById('fund-wallet-form');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelFunding = document.getElementById('cancel-funding');
+        const confirmFunding = document.getElementById('confirm-funding');
+        const confirmAmount = document.getElementById('confirm-amount');
+        const confirmMethod = document.getElementById('confirm-method');
+        const confirmTotal = document.getElementById('confirm-total');
+        
+        fundWalletForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const amount = parseFloat(amountInput.value);
+            
+            if (!amount || amount < 100) {
+                showToast('error', 'Invalid Amount', 'Please enter an amount of at least ₦100');
+                return;
+            }
+            
+            // Get selected payment method
+            const activeMethodCard = document.querySelector('.payment-method-card.active');
+            if (!activeMethodCard) {
+                showToast('error', 'Payment Method Required', 'Please select a payment method');
+                return;
+            }
+            
+            const methodName = activeMethodCard.querySelector('.payment-method-name').textContent;
+            
+            // Calculate total
+            const fee = 50;
+            const total = amount + fee;
+            
+            // Update confirmation modal
+            confirmAmount.textContent = `₦${formatCurrency(amount)}`;
+            confirmMethod.textContent = methodName;
+            confirmTotal.textContent = `₦${formatCurrency(total)}`;
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+        });
+        
+        cancelFunding.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+            showToast('info', 'Funding Cancelled', 'Your wallet funding has been cancelled');
+        });
+        
+        // Paystack Integration
+        const paystackContainer = document.getElementById('paystack-container');
+        const paystackFrameContainer = document.getElementById('paystack-frame-container');
+        const paystackClose = document.getElementById('paystack-close');
+        
+        confirmFunding.addEventListener('click', function() {
+            // Close confirmation modal
+            confirmationModal.classList.remove('show');
+            
+            // Get amount and payment method
+            const amount = parseFloat(amountInput.value);
+            const fee = 50;
+            const total = amount + fee;
+            const activeMethodCard = document.querySelector('.payment-method-card.active');
+            const paymentMethod = activeMethodCard.dataset.method;
+            
+            // Show processing state
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            // In a real app, you would initialize Paystack here
+            // This is a simulation of the Paystack API call
+            setTimeout(() => {
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-check-circle"></i> Proceed to Payment';
+                
+                // Initialize Paystack (simulated)
+                initializePaystack(total, paymentMethod);
+            }, 1500);
+        });
+        
+        // Simulate Paystack initialization
+        function initializePaystack(amount, paymentMethod) {
+            // In a real app, you would make an API call to your backend
+            // to initialize a Paystack transaction and get a payment URL
+            
+            // For demo purposes, we'll simulate the Paystack iframe
+            showToast('info', 'Redirecting', 'Redirecting to payment gateway...');
+            
+            setTimeout(() => {
+                // Show Paystack container
+                paystackContainer.classList.add('show');
+                
+                // Create simulated Paystack payment page
+                paystackFrameContainer.innerHTML = `
+                    <div style="width:100%; height:100%; background-color:#f5f5f5; display:flex; justify-content:center; align-items:center; font-family:Arial, sans-serif;">
+                        <div style="background:white; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); width:90%; max-width:450px; padding:30px;">
+                            <div style="text-align:center; margin-bottom:30px;">
+                                <div style="font-size:24px; font-weight:600; margin-bottom:10px;">Complete your payment</div>
+                                <div style="font-size:32px; font-weight:700; color:#0066f5; margin-bottom:30px;">₦${formatCurrency(amount)}</div>
+                            </div>
+                            
+                            <div style="margin-bottom:20px;">
+                                <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">Card Number</div>
+                                <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="0000 0000 0000 0000" maxlength="19">
+                            </div>
+                            
+                            <div style="display:flex; gap:15px; margin-bottom:20px;">
+                                <div style="flex:1;">
+                                    <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">Expiry Date</div>
+                                    <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                
+                                <div style="flex:1;">
+                                    <div style="display:block; margin-bottom:8px; font-size:14px; font-weight:500; color:#333;">CVV</div>
+                                    <input type="text" style="width:100%; padding:12px 15px; border:1px solid #ddd; border-radius:5px; font-size:16px;" placeholder="123" maxlength="3">
+                                </div>
+                            </div>
+                            
+                            <button id="simulate-payment-btn" style="background:#0066f5; color:white; border:none; border-radius:5px; padding:15px; font-size:16px; font-weight:600; width:100%; cursor:pointer;">Pay ₦${formatCurrency(amount)}</button>
+                            
+                            <div style="text-align:center; margin-top:20px; font-size:14px; color:#666;">
+                                <i class="fas fa-lock"></i> Secured by Paystack
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add event listener to the payment button
+                const simulatePaymentBtn = document.getElementById('simulate-payment-btn');
+                simulatePaymentBtn.addEventListener('click', function() {
+                    this.innerHTML = 'Processing...';
+                    this.disabled = true;
+                    
+                    setTimeout(() => {
+                        // Close Paystack container
+                        paystackContainer.classList.remove('show');
+                        
+                        // Show success message
+                        showToast('success', 'Payment Successful', 'Your wallet has been funded successfully');
+                        
+                        // Update wallet balance (in a real app, this would come from the server)
+                        const walletBalance = document.querySelector('.wallet-balance');
+                        const currentBalance = 24500;
+                        const newAmount = parseFloat(amountInput.value);
+                        const newBalance = currentBalance + newAmount;
+                        
+                        // Animate balance change
+                        setTimeout(() => {
+                            walletBalance.textContent = `₦${formatCurrency(newBalance)}`;
+                            
+                            // Reset form
+                            fundWalletForm.reset();
+                            
+                            // Reset amount buttons
+                            amountBtns.forEach(b => b.classList.remove('active'));
+                            
+                            // Reset display
+                            updateAmountDisplay();
+                        }, 1000);
+                    }, 2000);
+                });
+            }, 1000);
+        }
+        
+        // Handle Paystack close
+        paystackClose.addEventListener('click', function() {
+            paystackContainer.classList.remove('show');
+            paystackFrameContainer.innerHTML = '';
+            showToast('warning', 'Payment Cancelled', 'You have cancelled the payment process');
+        });
+        
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setNavIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setNavIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+                
+                // In a real app, you would navigate to the corresponding page
+                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
+            });
+        });
+        
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        });
+        
+        // Back button
+        document.querySelector('.back-button').addEventListener('click', function() {
+            showToast('info', 'Navigation', 'Returning to dashboard...');
+            setTimeout(() => {
+                window.location.href = 'vtu-dashboard.html';
+            }, 1000);
+        });
+        
+        // Toast Notification System
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    icon = 'x-circle';
+                    break;
+                case 'warning':
+                    icon = 'alert-triangle';
+                    break;
+                default:
+                    icon = 'info';
+            }
+            
+            // Set toast content
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <i class="fas fa-times"></i>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Add click event to close button
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.remove();
+            });
+            
+            // Auto remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 5500);
+        }
+        
+        // Show initial toast on page load
+        setTimeout(() => {
+            showToast('info', 'Welcome', 'Fund your wallet to enjoy seamless transactions on VeltraWave');
+        }, 1000);
+    </script>
+</body>
+</html>

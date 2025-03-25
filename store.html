@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeltraWave Services</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-icon {
+            margin-right: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            background: var(--surface);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-description {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            max-width: 600px;
+        }
+        
+        /* Category Cards */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        
+        .category-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 100%;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        .category-card:hover::before {
+            opacity: 1;
+        }
+        
+        .category-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        
+        .category-card:hover .category-icon {
+            transform: scale(1.1);
+        }
+        
+        .category-card:nth-child(1) .category-icon {
+            color: #5A9DFF;
+        }
+        
+        .category-card:nth-child(2) .category-icon {
+            color: #FF5E8A;
+        }
+        
+        .category-card:nth-child(3) .category-icon {
+            color: #8C52FF;
+        }
+        
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .category-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+            flex-grow: 1;
+        }
+        
+        .category-button {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            align-self: flex-start;
+            box-shadow: 0 8px 15px rgba(45, 127, 249, 0.2);
+        }
+        
+        .category-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .category-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-water"></i>
+            </div>
+            VeltraWave
+        </div>
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </button>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Our Services</h1>
+        <p class="page-description">Browse our collection of digital services. Select a category to explore.</p>
+        
+        <!-- Category Cards -->
+        <div class="category-grid">
+            <!-- Website Templates Category -->
+            <div class="category-card" onclick="navigateTo('websites')">
+                <div class="category-icon">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <h2 class="category-title">Website Templates</h2>
+                <p class="category-description">Professional website templates for businesses, portfolios, and e-commerce stores.</p>
+                <button class="category-button">
+                    Explore Templates
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Apps Category -->
+            <div class="category-card" onclick="navigateTo('apps')">
+                <div class="category-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h2 class="category-title">Mobile Apps</h2>
+                <p class="category-description">Premium mobile applications for Android and iOS devices.</p>
+                <button class="category-button">
+                    Browse Apps
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <!-- Telegram Mini App Category -->
+            <div class="category-card" onclick="navigateTo('telegram')">
+                <div class="category-icon">
+                    <i class="fab fa-telegram-plane"></i>
+                </div>
+                <h2 class="category-title">Telegram Mini App</h2>
+                <p class="category-description">Custom Telegram mini applications for businesses and communities.</p>
+                <button class="category-button">
+                    View Mini Apps
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home" onclick="navigateTo('dashboard')">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item active" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions" onclick="navigateTo('transactions')">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item" data-page="account" onclick="navigateTo('account')">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+            });
+        });
+        
+        // Navigation function
+        function navigateTo(page) {
+            console.log(`Navigating to ${page} page...`);
+            // In a real app, you would navigate to the corresponding page
+            // window.location.href = `${page}.html`;
+        }
+        
+        // Window resize handler for nav indicator
+        window.addEventListener('resize', function() {
+            setIndicatorPosition(document.querySelector('.nav-item.active'));
+        });
+        
+        // Card hover effects
+        const categoryCards = document.querySelectorAll('.category-card');
+        
+        categoryCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.category-icon');
+                icon.style.transform = 'scale(1.1)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const icon = this.querySelector('.category-icon');
+                icon.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

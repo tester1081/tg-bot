@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Data - VeltraWave</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+            --mtn-yellow: #FFCC00;
+            --airtel-red: #FF0000;
+            --glo-green: #00AB4E;
+            --etisalat-green: #006F53;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 100px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Mode Switcher (iPhone Style) */
+        .mode-switcher-container {
+            margin-bottom: 24px;
+        }
+        
+        .mode-switcher {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 4px;
+            display: flex;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .mode-option {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+            border-radius: 12px;
+        }
+        
+        .mode-indicator {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            height: calc(100% - 8px);
+            width: calc(50% - 4px);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+        
+        .mode-option.active {
+            color: white;
+        }
+        
+        .mode-option:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        /* Network Selection */
+        .network-selection {
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .networks-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        
+        .network-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .network-card.active {
+            border-color: var(--primary);
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .network-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .network-card:not(.disabled):hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .network-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+        
+        .network-logo.mtn {
+            background: var(--mtn-yellow);
+            color: black;
+        }
+        
+        .network-logo.airtel {
+            background: var(--airtel-red);
+            color: white;
+        }
+        
+        .network-logo.glo {
+            background: var(--glo-green);
+            color: white;
+        }
+        
+        .network-logo.etisalat {
+            background: var(--etisalat-green);
+            color: white;
+        }
+        
+        .network-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .coming-soon-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--text-secondary);
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            padding: 14px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 127, 249, 0.2);
+        }
+        
+        .form-select option {
+            background: #1A2035;
+            color: white;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 127, 249, 0.3);
+        }
+        
+        .primary-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Manual Data Plans */
+        .manual-content {
+            display: none;
+        }
+        
+        .manual-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+            z-index: 0;
+        }
+        
+        .info-card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .info-card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--mtn-yellow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-card-subtitle {
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+        
+        .info-list {
+            list-style: none;
+            margin-bottom: 0;
+        }
+        
+        .info-list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .info-list-item i {
+            color: var(--mtn-yellow);
+            margin-top: 4px;
+        }
+        
+        .plan-category {
+            margin-bottom: 24px;
+        }
+        
+        .category-header {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-title i {
+            color: var(--primary);
+        }
+        
+        .category-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        @media (min-width: 768px) {
+            .plans-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .plan-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .plan-card.active {
+            border-color: var(--primary);
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .plan-card:hover:not(.active) {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0));
+            z-index: 0;
+        }
+        
+        .plan-data {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .plan-validity {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .plan-price {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .price-old {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+        
+        .price-new {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+        
+        .badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 8px;
+            z-index: 2;
+        }
+        
+        .badge.hot {
+            background: var(--error);
+        }
+        
+        .badge.popular {
+            background: var(--warning);
+        }
+        
+        .badge.value {
+            background: var(--success);
+        }
+        
+        .order-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 32px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .order-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .selected-plan-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        
+        .selected-plan-display.active {
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .admin-note {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .admin-note i {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+        
+        .admin-note-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Automatic Content */
+        .automatic-content {
+            display: none;
+        }
+        
+        .automatic-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 90%;
+            width: 400px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.show .modal {
+            transform: scale(1);
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            margin: 0 auto 16px;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .modal-description {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .confirmation-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .confirmation-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .confirmation-item:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .confirmation-label {
+            color: var(--text-secondary);
+        }
+        
+        .confirmation-value {
+            font-weight: 500;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Live Elements */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            position: relative;
+        }
+        
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 4px;
+        }
+        
+        .typing-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            animation: typing 1.5s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-4px);
+            }
+        }
+        
+        .live-users {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .live-users-count {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .live-users-avatars {
+            display: flex;
+            margin-right: 8px;
+        }
+        
+        .live-user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--background);
+            margin-left: -8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+        }
+        
+        .live-user-avatar:first-child {
+            margin-left: 0;
+            z-index: 3;
+        }
+        
+        .live-user-avatar:nth-child(2) {
+            z-index: 2;
+        }
+        
+        .live-user-avatar:nth-child(3) {
+            z-index: 1;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transform: translateX(120%);
+            animation: slide-in 0.3s forwards, fade-out 0.5s forwards 5s;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast.success {
+            border-left-color: var(--success);
+        }
+        
+        .toast.error {
+            border-left-color: var(--error);
+        }
+        
+        .toast.warning {
+            border-left-color: var(--warning);
+        }
+        
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .toast.success .toast-icon {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .toast.error .toast-icon {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .toast.warning .toast-icon {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .toast-message {
+            color: var(--text-secondary);
+        }
+        
+        .toast-close {
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        
+        @keyframes slide-in {
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fade-out {
+            0%, 80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+        
+        /* Network Switcher */
+        .network-switcher {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 16px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 999;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+        
+        .network-switcher.show {
+            display: block;
+            animation: fade-in 0.3s ease;
+        }
+        
+        .network-switcher-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .network-switcher-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .network-switcher-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .network-switcher-item:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .network-switcher-item.active {
+            background: rgba(45, 127, 249, 0.1);
+            border: 1px solid var(--primary);
+        }
+        
+        .network-switcher-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .network-switcher-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .network-switcher-info {
+            flex: 1;
+        }
+        
+        .network-switcher-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .network-switcher-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .network-switcher-status.available {
+            color: var(--success);
+        }
+        
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) translateX(-50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) translateX(-50%);
+            }
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .networks-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+            
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="back-button">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="page-title">Buy Data</div>
+        <div class="network-indicator" id="network-indicator">
+            <i class="fas fa-signal"></i> MTN
+        </div>
+    </header>
+    
+    <!-- Network Switcher -->
+    <div class="network-switcher" id="network-switcher">
+        <div class="network-switcher-title">Select Network Provider</div>
+        <div class="network-switcher-grid">
+            <div class="network-switcher-item active" data-network="mtn">
+                <div class="network-switcher-logo mtn">
+                    <i class="fas fa-signal"></i>
+                </div>
+                <div class="network-switcher-info">
+                    <div class="network-switcher-name">MTN</div>
+                    <div class="network-switcher-status available">Available</div>
+                </div>
+            </div>
+            <div class="network-switcher-item disabled" data-network="airtel">
+                <div class="network-switcher-logo airtel">
+                    <i class="fas fa-signal"></i>
+                </div>
+                <div class="network-switcher-info">
+                    <div class="network-switcher-name">Airtel</div>
+                    <div class="network-switcher-status">Coming Soon</div>
+                </div>
+            </div>
+            <div class="network-switcher-item disabled" data-network="glo">
+                <div class="network-switcher-logo glo">
+                    <i class="fas fa-signal"></i>
+                </div>
+                <div class="network-switcher-info">
+                    <div class="network-switcher-name">Glo</div>
+                    <div class="network-switcher-status">Coming Soon</div>
+                </div>
+            </div>
+            <div class="network-switcher-item disabled" data-network="9mobile">
+                <div class="network-switcher-logo etisalat">
+                    <i class="fas fa-signal"></i>
+                </div>
+                <div class="network-switcher-info">
+                    <div class="network-switcher-name">9mobile</div>
+                    <div class="network-switcher-status">Coming Soon</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Mode Switcher -->
+        <div class="mode-switcher-container">
+            <div class="mode-switcher">
+                <div class="mode-indicator"></div>
+                <div class="mode-option active" data-mode="automatic">Automatic</div>
+                <div class="mode-option" data-mode="manual">Manual</div>
+            </div>
+        </div>
+        
+        <!-- Live Indicators -->
+        <div class="live-users">
+            <div class="live-users-avatars">
+                <div class="live-user-avatar">JD</div>
+                <div class="live-user-avatar">SA</div>
+                <div class="live-user-avatar">KM</div>
+            </div>
+            <div class="live-users-count">128</div> users currently viewing this page
+        </div>
+        
+        <div class="live-indicator">
+            <div class="live-dot"></div>
+            <span>LIVE</span>
+            <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+        
+        <!-- Automatic Content -->
+        <div class="automatic-content active" id="automatic-content">
+            <!-- Network Selection -->
+            <div class="network-selection">
+                <div class="section-title">Select Network</div>
+                <div class="networks-grid">
+                    <div class="network-card active" data-network="mtn">
+                        <div class="network-logo mtn">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="network-name">MTN</div>
+                    </div>
+                    <div class="network-card disabled" data-network="airtel">
+                        <div class="network-logo airtel">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="network-name">Airtel</div>
+                        <div class="coming-soon-badge">Soon</div>
+                    </div>
+                    <div class="network-card disabled" data-network="glo">
+                        <div class="network-logo glo">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="network-name">Glo</div>
+                        <div class="coming-soon-badge">Soon</div>
+                    </div>
+                    <div class="network-card disabled" data-network="9mobile">
+                        <div class="network-logo etisalat">
+                            <i class="fas fa-signal"></i>
+                        </div>
+                        <div class="network-name">9mobile</div>
+                        <div class="coming-soon-badge">Soon</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Purchase Form -->
+            <form id="data-form">
+                <div class="form-group">
+                    <label class="form-label">Plan Type</label>
+                    <select class="form-select" id="plan-type" required>
+                        <option value="" selected disabled>Select Plan Type</option>
+                        <option value="data">Data Plan</option>
+                        <option value="social">Social Bundle</option>
+                        <option value="corporate">Corporate Plan</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Data Plan</label>
+                    <select class="form-select" id="data-plan" required>
+                        <option value="" selected disabled>Select Data Plan</option>
+                        <option value="500mb">500MB - 1 Day - ₦129</option>
+                        <option value="1gb">1GB - 1 Day - ₦249</option>
+                        <option value="2.5gb">2.5GB - 2 Days - ₦519</option>
+                        <option value="5gb">5GB - 7 Days - ₦1,299</option>
+                        <option value="10gb">10GB - 30 Days - ₦2,499</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="phone-number" placeholder="Enter 11-digit phone number" pattern="[0-9]{11}" required>
+                </div>
+                
+                <button type="submit" class="primary-btn" id="buy-data-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    Buy Now
+                </button>
+            </form>
+        </div>
+        
+        <!-- Manual Content -->
+        <div class="manual-content" id="manual-content">
+            <!-- Info Card -->
+            <div class="info-card">
+                <div class="info-card-content">
+                    <div class="info-card-title">
+                        <i class="fas fa-signal"></i>
+                        VeltraWave Exclusive MTN Special Data Plans
+                    </div>
+                    <div class="info-card-subtitle">
+                        The cheapest MTN data plans available anywhere - exclusively for VeltraWave customers!
+                    </div>
+                    <ul class="info-list">
+                        <li class="info-list-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Premium quality data with full network coverage</span>
+                        </li>
+                        <li class="info-list-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Fast delivery - data will be delivered within 30 minutes</span>
+                        </li>
+                        <li class="info-list-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Large plans (5GB+) may be delivered in multiple transfers</span>
+                        </li>
+                        <li class="info-list-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Plans expire after validity period (no rollover)</span>
+                        </li>
+                        <li class="info-list-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Works on all MTN SIM cards and supports hotspot/tethering</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 1-Day Plans -->
+            <div class="plan-category">
+                <div class="category-header">
+                    <div class="category-title">
+                        <i class="fas fa-clock"></i>
+                        1-Day Offers (24 Hours Validity)
+                    </div>
+                    <div class="category-description">
+                        Best for: Quick browsing, social media, and light streaming.
+                    </div>
+                </div>
+                
+                <div class="plans-grid">
+                    <div class="plan-card" data-plan="500mb-1day">
+                        <div class="plan-data">500MB</div>
+                        <div class="plan-validity">1 Day</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦150</div>
+                            <div class="price-new">₦129</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="600mb-1day">
+                        <div class="plan-data">600MB</div>
+                        <div class="plan-validity">1 Day</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦180</div>
+                            <div class="price-new">₦159</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="2.5gb-1day">
+                        <div class="badge hot">HOT!</div>
+                        <div class="plan-data">2.5GB</div>
+                        <div class="plan-validity">1 Day</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦600</div>
+                            <div class="price-new">₦519</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="4.5gb-1day">
+                        <div class="plan-data">4.5GB</div>
+                        <div class="plan-validity">1 Day</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦1,500</div>
+                            <div class="price-new">₦1,299</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 7-Day Plans -->
+            <div class="plan-category">
+                <div class="category-header">
+                    <div class="category-title">
+                        <i class="fas fa-calendar-week"></i>
+                        7-Day Offers (1 Week Validity)
+                    </div>
+                    <div class="category-description">
+                        Best for: Heavy users, movie streaming, gaming, and hotspot sharing.
+                    </div>
+                </div>
+                
+                <div class="plans-grid">
+                    <div class="plan-card" data-plan="13gb-7day">
+                        <div class="plan-data">13GB</div>
+                        <div class="plan-validity">7 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦3,000</div>
+                            <div class="price-new">₦2,599</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="18gb-7day">
+                        <div class="plan-data">18GB</div>
+                        <div class="plan-validity">7 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦5,200</div>
+                            <div class="price-new">₦4,549</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="22gb-7day">
+                        <div class="badge popular">MOST POPULAR</div>
+                        <div class="plan-data">22GB</div>
+                        <div class="plan-validity">7 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦6,000</div>
+                            <div class="price-new">₦5,199</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 14-Day Plans -->
+            <div class="plan-category">
+                <div class="category-header">
+                    <div class="category-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        14-Day Offers (2 Weeks Validity)
+                    </div>
+                    <div class="category-description">
+                        Best for: Remote work, gaming, frequent downloads, and social media content creators.
+                    </div>
+                </div>
+                
+                <div class="plans-grid">
+                    <div class="plan-card" data-plan="30gb-14day">
+                        <div class="badge value">BEST VALUE</div>
+                        <div class="plan-data">30GB</div>
+                        <div class="plan-validity">14 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦7,500</div>
+                            <div class="price-new">₦6,499</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 30-Day Plans -->
+            <div class="plan-category">
+                <div class="category-header">
+                    <div class="category-title">
+                        <i class="fas fa-calendar-check"></i>
+                        30-Day Offers (1 Month Validity)
+                    </div>
+                    <div class="category-description">
+                        Best for: Long-term users, multiple device connections, video streaming, and online businesses.
+                    </div>
+                </div>
+                
+                <div class="plans-grid">
+                    <div class="plan-card" data-plan="39gb-30day">
+                        <div class="plan-data">39GB</div>
+                        <div class="plan-validity">30 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦9,000</div>
+                            <div class="price-new">₦7,799</div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-card" data-plan="53gb-30day">
+                        <div class="plan-data">53GB</div>
+                        <div class="plan-validity">30 Days</div>
+                        <div class="plan-price">
+                            <div class="price-old">₦15,000</div>
+                            <div class="price-new">₦12,999</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Section -->
+            <div class="order-section">
+                <div class="order-title">Order Your MTN Data Plan</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Selected Plan</label>
+                    <div class="selected-plan-display" id="selected-plan-display">
+                        Select a plan above
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">MTN Phone Number</label>
+                    <input type="tel" class="form-input" id="manual-phone-number" placeholder="Enter your MTN number" pattern="[0-9]{11}" required>
+                    <small style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; display: block;">This is the number where the data will be sent.</small>
+                </div>
+                
+                <button type="button" class="primary-btn" id="place-order-btn" disabled>
+                    <i class="fas fa-shopping-cart"></i>
+                    Place Order Now
+                </button>
+                
+                <div class="admin-note">
+                    <i class="fas fa-info-circle"></i>
+                    <div class="admin-note-text">
+                        Your order will be sent to our admin dashboard for processing. Data will be delivered within 30 minutes during business hours.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item active" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal">
+            <div class="modal-close" id="close-modal">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="modal-icon">
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="modal-title">Confirm Purchase</div>
+            <div class="modal-description">
+                Please review your data purchase details
+            </div>
+            
+            <div class="confirmation-details">
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Network</div>
+                    <div class="confirmation-value">MTN</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Data Plan</div>
+                    <div class="confirmation-value" id="confirm-plan">2.5GB - 1 Day</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Phone Number</div>
+                    <div class="confirmation-value" id="confirm-number">08012345678</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">Amount</div>
+                    <div class="confirmation-value" id="confirm-amount">₦519</div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="cancel-purchase">
+                    Cancel
+                </button>
+                <button class="modal-btn confirm" id="confirm-purchase">
+                    <i class="fas fa-check-circle"></i>
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <script>
+        // Mode Switcher
+        const modeOptions = document.querySelectorAll('.mode-option');
+        const modeIndicator = document.querySelector('.mode-indicator');
+        const automaticContent = document.getElementById('automatic-content');
+        const manualContent = document.getElementById('manual-content');
+        
+        // Set initial indicator position
+        function setModeIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const switcherRect = document.querySelector('.mode-switcher').getBoundingClientRect();
+            
+            modeIndicator.style.width = `${itemRect.width}px`;
+            modeIndicator.style.left = `${itemRect.left - switcherRect.left}px`;
+        }
+        
+        // Set initial position
+        setModeIndicatorPosition(document.querySelector('.mode-option.active'));
+        
+        // Mode switcher click handler
+        modeOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove active class from all options
+                modeOptions.forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                
+                // Add active class to clicked option
+                this.classList.add('active');
+                
+                // Move indicator
+                setModeIndicatorPosition(this);
+                
+                // Show/hide content based on selected mode
+                const mode = this.dataset.mode;
+                if (mode === 'automatic') {
+                    automaticContent.classList.add('active');
+                    manualContent.classList.remove('active');
+                    showToast('success', 'Mode Changed', 'Switched to Automatic mode');
+                } else {
+                    automaticContent.classList.remove('active');
+                    manualContent.classList.add('active');
+                    showToast('success', 'Mode Changed', 'Switched to Manual mode');
+                }
+            });
+        });
+        
+        // Navigation Bar
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        
+        // Set initial indicator position
+        function setNavIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+        
+        // Set initial position
+        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+        
+        // Add ripple effect and handle navigation
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Remove active class from all items
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Move indicator
+                setNavIndicatorPosition(this);
+                
+                // Create ripple effect
+                const navBar = document.querySelector('.nav-bar');
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                
+                const rect = navBar.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                navBar.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 800);
+                
+                // In a real app, you would navigate to the corresponding page
+                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
+            });
+        });
+        
+        // Plan Cards Selection
+        const planCards = document.querySelectorAll('.plan-card');
+        const selectedPlanDisplay = document.getElementById('selected-plan-display');
+        const placeOrderBtn = document.getElementById('place-order-btn');
+        let selectedPlan = null;
+        
+        planCards.forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove active class from all cards
+                planCards.forEach(c => {
+                    c.classList.remove('active');
+                });
+                
+                // Add active class to clicked card
+                this.classList.add('active');
+                
+                // Get plan details
+                const planData = this.querySelector('.plan-data').textContent;
+                const planValidity = this.querySelector('.plan-validity').textContent;
+                const planPrice = this.querySelector('.price-new').textContent;
+                
+                // Update selected plan display
+                selectedPlanDisplay.textContent = `${planData} - ${planValidity} - ${planPrice}`;
+                selectedPlanDisplay.classList.add('active');
+                
+                // Enable order button
+                placeOrderBtn.disabled = false;
+                
+                // Store selected plan
+                selectedPlan = {
+                    id: this.dataset.plan,
+                    data: planData,
+                    validity: planValidity,
+                    price: planPrice
+                };
+                
+                showToast('success', 'Plan Selected', `Selected ${planData} plan for ${planValidity}`);
+            });
+        });
+        
+        // Automatic Form Submission
+        const dataForm = document.getElementById('data-form');
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const closeModal = document.getElementById('close-modal');
+        const cancelPurchase = document.getElementById('cancel-purchase');
+        const confirmPurchase = document.getElementById('confirm-purchase');
+        const confirmPlan = document.getElementById('confirm-plan');
+        const confirmNumber = document.getElementById('confirm-number');
+        const confirmAmount = document.getElementById('confirm-amount');
+        
+        dataForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const planType = document.getElementById('plan-type').value;
+            const dataPlan = document.getElementById('data-plan');
+            const phoneNumber = document.getElementById('phone-number').value;
+            
+            if (!phoneNumber || phoneNumber.length !== 11) {
+                showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
+                return;
+            }
+            
+            // Get selected plan text
+            const selectedPlanText = dataPlan.options[dataPlan.selectedIndex].text;
+            
+            // Update confirmation modal
+            confirmPlan.textContent = selectedPlanText.split(' - ')[0] + ' - ' + selectedPlanText.split(' - ')[1];
+            confirmNumber.textContent = phoneNumber;
+            confirmAmount.textContent = selectedPlanText.split(' - ')[2];
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        // Manual Order Submission
+        placeOrderBtn.addEventListener('click', function() {
+            const phoneNumber = document.getElementById('manual-phone-number').value;
+            
+            if (!phoneNumber || phoneNumber.length !== 11) {
+                showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
+                return;
+            }
+            
+            // Update confirmation modal
+            confirmPlan.textContent = `${selectedPlan.data} - ${selectedPlan.validity}`;
+            confirmNumber.textContent = phoneNumber;
+            confirmAmount.textContent = selectedPlan.price;
+            
+            // Show confirmation modal
+            confirmationModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+        });
+        
+        cancelPurchase.addEventListener('click', function() {
+            confirmationModal.classList.remove('show');
+            showToast('info', 'Purchase Cancelled', 'Your data purchase has been cancelled');
+        });
+        
+        confirmPurchase.addEventListener('click', function() {
+            // In a real app, you would process the purchase here
+            console.log('Processing purchase...');
+            
+            // Simulate processing
+            confirmPurchase.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            confirmPurchase.disabled = true;
+            
+            setTimeout(() => {
+                confirmationModal.classList.remove('show');
+                showToast('success', 'Purchase Successful', 'Your data will be delivered within 30 minutes');
+                
+                // Reset form
+                dataForm.reset();
+                
+                // Reset manual selection
+                planCards.forEach(c => {
+                    c.classList.remove('active');
+                });
+                selectedPlanDisplay.textContent = 'Select a plan above';
+                selectedPlanDisplay.classList.remove('active');
+                placeOrderBtn.disabled = true;
+                
+                // Reset confirmation button
+                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
+                confirmPurchase.disabled = false;
+            }, 2000);
+        });
+        
+        // Live Users Count Animation
+        const liveUsersCount = document.querySelector('.live-users-count');
+        let count = 128;
+        
+        setInterval(() => {
+            // Random fluctuation in user count
+            const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
+            count = Math.max(100, count + change);
+            liveUsersCount.textContent = count;
+        }, 3000);
+        
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+            setModeIndicatorPosition(document.querySelector('.mode-option.active'));
+        });
+        
+        // Back button
+        document.querySelector('.back-button').addEventListener('click', function() {
+            showToast('info', 'Navigation', 'Returning to dashboard...');
+            setTimeout(() => {
+                window.location.href = 'vtu-dashboard.html';
+            }, 1000);
+        });
+        
+        // Network Indicator (for network switching)
+        const networkIndicator = document.getElementById('network-indicator');
+        const networkSwitcher = document.getElementById('network-switcher');
+        
+        networkIndicator.addEventListener('click', function() {
+            networkSwitcher.classList.toggle('show');
+        });
+        
+        // Close network switcher when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!networkIndicator.contains(e.target) && !networkSwitcher.contains(e.target)) {
+                networkSwitcher.classList.remove('show');
+            }
+        });
+        
+        // Network switcher items
+        const networkSwitcherItems = document.querySelectorAll('.network-switcher-item');
+        
+        networkSwitcherItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) {
+                    showToast('warning', 'Coming Soon', `${this.querySelector('.network-switcher-name').textContent} is not yet available`);
+                    return;
+                }
+                
+                // Update active network
+                networkSwitcherItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update network indicator
+                const networkName = this.querySelector('.network-switcher-name').textContent;
+                networkIndicator.innerHTML = `<i class="fas fa-signal"></i> ${networkName}`;
+                
+                // Update network cards
+                const networkCards = document.querySelectorAll('.network-card');
+                networkCards.forEach(card => {
+                    if (card.dataset.network === this.dataset.network) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+                
+                // Close network switcher
+                networkSwitcher.classList.remove('show');
+                
+                // Show toast
+                showToast('success', 'Network Changed', `Switched to ${networkName} network`);
+            });
+        });
+        
+        // Toast Notification System
+        function showToast(type, title, message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Set icon based on type
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = 'check-circle';
+                    break;
+                case 'error':
+                    icon = 'x-circle';
+                    break;
+                case 'warning':
+                    icon = 'alert-triangle';
+                    break;
+                default:
+                    icon = 'info';
+            }
+            
+            // Set toast content
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <div class="toast-close">
+                    <i class="fas fa-times"></i>
+                </div>
+            `;
+            
+            // Add toast to container
+            toastContainer.appendChild(toast);
+            
+            // Add click event to close button
+            toast.querySelector('.toast-close').addEventListener('click', function() {
+                toast.remove();
+            });
+            
+            // Auto remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 5500);
+        }
+        
+        // Network card click handler
+        const networkCards = document.querySelectorAll('.network-card');
+        
+        networkCards.forEach(card => {
+            card.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) {
+                    showToast('warning', 'Coming Soon', `${this.querySelector('.network-name').textContent} is not yet available`);
+                    return;
+                }
+                
+                // Update active network
+                networkCards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update network indicator
+                const networkName = this.querySelector('.network-name').textContent;
+                networkIndicator.innerHTML = `<i class="fas fa-signal"></i> ${networkName}`;
+                
+                // Update network switcher
+                networkSwitcherItems.forEach(item => {
+                    if (item.dataset.network === this.dataset.network) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+                
+                showToast('success', 'Network Changed', `Switched to ${networkName} network`);
+            });
+        });
+        
+        // Show initial toast on page load
+        setTimeout(() => {
+            showToast('info', 'Welcome', 'Buy data at the best prices with VeltraWave');
+        }, 1000);
+    </script>
+</body>
+</html>
