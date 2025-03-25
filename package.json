@@ -1,0 +1,11 @@
+{
+  "name": "veltrawave",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=16.x"
+  },
+  "dependencies": {
+    "@vercel/node": "^2.0.0"  // Required for serverless functions
+  }
+}
