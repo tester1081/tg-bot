@@ -1833,4 +1833,1839 @@
         }
     </script>
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeltraWave VTU Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #2D7FF9;
+            --primary-light: #5A9DFF;
+            --primary-dark: #0D5ED6;
+            --secondary: #8C52FF;
+            --accent: #FF5E8A;
+            --background: #0A0F1E;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --surface: rgba(255, 255, 255, 0.12);
+            --text: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --success: #00E1A0;
+            --warning: #FFB547;
+            --error: #FF5E7D;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Liquid Blob Background */
+        .liquid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--primary);
+            top: -200px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--secondary);
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+        
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: 40%;
+            right: 20%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(5%, 5%) scale(1.05);
+            }
+            50% {
+                transform: translate(0, 10%) scale(0.95);
+            }
+            75% {
+                transform: translate(-5%, 5%) scale(1.05);
+            }
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-image {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .header-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            padding: 0 4px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 0 20px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Balance Card */
+        .balance-card-container {
+            margin-bottom: 24px;
+            perspective: 1000px;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.2), rgba(140, 82, 255, 0.2));
+            border-radius: 24px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease;
+        }
+        
+        .balance-card:hover {
+            transform: rotateX(5deg) rotateY(5deg);
+        }
+        
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+            border-radius: 24px;
+            z-index: 0;
+        }
+        
+        .balance-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        .balance-card:hover::after {
+            opacity: 1;
+        }
+        
+        .balance-card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .balance-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .fund-wallet-btn {
+            width: 100%;
+            max-width: 300px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(45, 127, 249, 0.25);
+        }
+        
+        .fund-wallet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(45, 127, 249, 0.4);
+        }
+        
+        .fund-wallet-btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* Quick Services */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: var(--primary);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .service-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        
+        .service-card:hover::before {
+            opacity: 1;
+        }
+        
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            position: relative;
+            z-index: 1;
+        }
+        
+        .service-card:nth-child(1) .service-icon {
+            color: #5A9DFF;
+        }
+        
+        .service-card:nth-child(2) .service-icon {
+            color: #FF5E8A;
+        }
+        
+        .service-card:nth-child(3) .service-icon {
+            color: #8C52FF;
+        }
+        
+        .service-card:nth-child(4) .service-icon {
+            color: #00E1A0;
+        }
+        
+        .service-card:nth-child(5) .service-icon {
+            color: #FFB547;
+        }
+        
+        .service-card:nth-child(6) .service-icon {
+            color: #FF5E7D;
+        }
+        
+        .service-card:nth-child(7) .service-icon {
+            color: #5A9DFF;
+        }
+        
+        .service-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .service-description {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Recent Transactions */
+        .transactions-container {
+            background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1));
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 80px; /* Added space for nav bar */
+        }
+        
+        .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .view-all {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(45, 127, 249, 0.1);
+        }
+        
+        .view-all:hover {
+            background: rgba(45, 127, 249, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .transaction-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        /* Custom scrollbar for transaction list */
+        .transaction-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .transaction-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .transaction-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        
+        .transaction-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .transaction-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .transaction-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .transaction-icon.data {
+            background: rgba(90, 157, 255, 0.2);
+            color: #5A9DFF;
+        }
+        
+        .transaction-icon.airtime {
+            background: rgba(255, 94, 138, 0.2);
+            color: #FF5E8A;
+        }
+        
+        .transaction-icon.tv {
+            background: rgba(140, 82, 255, 0.2);
+            color: #8C52FF;
+        }
+        
+        .transaction-icon.wallet {
+            background: rgba(0, 225, 160, 0.2);
+            color: #00E1A0;
+        }
+        
+        .transaction-icon.game {
+            background: rgba(255, 181, 71, 0.2);
+            color: #FFB547;
+        }
+        
+        .transaction-details h4 {
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+        
+        .transaction-details p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+        
+        .amount-positive {
+            color: var(--success);
+            background: rgba(0, 225, 160, 0.1);
+        }
+        
+        .amount-negative {
+            color: var(--error);
+            background: rgba(255, 94, 125, 0.1);
+        }
+        
+        .transaction-loading, .notification-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        /* Navigation Bar */
+        .nav-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            z-index: 100;
+        }
+        
+        .nav-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-item:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item span {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .nav-indicator {
+            position: absolute;
+            height: calc(100% - 24px);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple 0.8s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .loading-overlay.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .loading-bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .bubble-1 {
+            width: 30px;
+            height: 30px;
+            top: 35px;
+            left: 35px;
+            animation: bubble 2s infinite ease-in-out;
+        }
+        
+        .bubble-2 {
+            width: 20px;
+            height: 20px;
+            top: 20px;
+            left: 50px;
+            animation: bubble 2s infinite ease-in-out 0.3s;
+        }
+        
+        .bubble-3 {
+            width: 15px;
+            height: 15px;
+            top: 60px;
+            left: 20px;
+            animation: bubble 2s infinite ease-in-out 0.6s;
+        }
+        
+        .bubble-4 {
+            width: 10px;
+            height: 10px;
+            top: 70px;
+            left: 60px;
+            animation: bubble 2s infinite ease-in-out 0.9s;
+        }
+        
+        @keyframes bubble {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            20% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            40%, 80% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Dropdown Menus */
+        .dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(20, 30, 50, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            min-width: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown-item:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .dropdown-item:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .dropdown-item i {
+            color: var(--primary);
+        }
+        
+        /* Notification Dropdown */
+        .notification-dropdown {
+            min-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: rgba(20, 30, 50, 0.95);
+            z-index: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+        }
+        
+        .mark-read {
+            font-size: 0.8rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .notification-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        
+        .notification-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-message {
+            margin-bottom: 4px;
+        }
+        
+        .notification-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(20, 30, 50, 0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .balance-card {
+                padding: 20px;
+            }
+            
+            .balance-amount {
+                font-size: 2rem;
+            }
+            
+            .services-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .nav-item span {
+                display: none;
+            }
+            
+            .nav-item i {
+                margin-bottom: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Animation -->
+    <div class="loading-overlay">
+        <div class="loading-container">
+            <div class="loading-bubble bubble-1"></div>
+            <div class="loading-bubble bubble-2"></div>
+            <div class="loading-bubble bubble-3"></div>
+            <div class="loading-bubble bubble-4"></div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification Container -->
+    <div id="toast-notification" class="toast-notification"></div>
+    
+    <!-- Liquid Background -->
+    <div class="liquid-bg">
+        <div class="liquid-blob blob-1"></div>
+        <div class="liquid-blob blob-2"></div>
+        <div class="liquid-blob blob-3"></div>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <img src="logo.png" alt="VeltraWave" class="logo-image">
+            <span>VeltraWave</span>
+        </div>
+        <div class="header-actions">
+            <div class="header-icon" id="notification-icon">
+                <i class="fas fa-bell"></i>
+                <div class="notification-badge" id="notification-count">0</div>
+                
+                <!-- Notification Dropdown -->
+                <div class="dropdown notification-dropdown" id="notification-dropdown">
+                    <div class="notification-header">
+                        <div class="notification-title">Notifications</div>
+                        <div class="mark-read" id="mark-all-read">Mark all as read</div>
+                    </div>
+                    <div class="notification-list" id="notification-list">
+                        <!-- Notifications will be loaded here -->
+                        <div class="notification-empty">No notifications yet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-icon" id="profile-icon">
+                <i class="fas fa-user"></i>
+                
+                <!-- Profile Dropdown -->
+                <div class="dropdown" id="profile-dropdown">
+                    <div class="dropdown-item" id="my-profile-link">
+                        <i class="fas fa-user-circle"></i>
+                        <span>My Profile</span>
+                    </div>
+                    <div class="dropdown-item" id="contact-us-link">
+                        <i class="fas fa-headset"></i>
+                        <span>Contact Us</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Balance Card -->
+        <div class="balance-card-container">
+            <div class="balance-card">
+                <div class="card-decoration decoration-1"></div>
+                <div class="card-decoration decoration-2"></div>
+                <div class="balance-card-content">
+                    <div class="balance-label">Available Balance</div>
+                    <div class="balance-amount" id="user-balance">₦0.00</div>
+                    <button class="fund-wallet-btn">
+                        <i class="fas fa-wallet"></i>
+                        Fund Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Services -->
+        <div class="section-title">
+            <i class="fas fa-bolt"></i>
+            Quick Services
+        </div>
+        <div class="services-grid">
+            <!-- Data Service -->
+            <div class="service-card" data-service="data">
+                <div class="service-icon">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <div class="service-title">Data</div>
+                <div class="service-description">Buy internet data</div>
+            </div>
+            
+            <!-- Airtime Service -->
+            <div class="service-card" data-service="airtime">
+                <div class="service-icon">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                <div class="service-title">Airtime</div>
+                <div class="service-description">Recharge any network</div>
+            </div>
+            
+            <!-- Game Topup Service -->
+            <div class="service-card" data-service="game">
+                <div class="service-icon">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <div class="service-title">Game Topup</div>
+                <div class="service-description">Fund your game account</div>
+            </div>
+            
+            <!-- Store Service -->
+            <div class="service-card" data-service="store">
+                <div class="service-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="service-title">Store</div>
+                <div class="service-description">Digital products</div>
+            </div>
+            
+            <!-- Cable TV Service -->
+            <div class="service-card" data-service="cable">
+                <div class="service-icon">
+                    <i class="fas fa-tv"></i>
+                </div>
+                <div class="service-title">Cable TV</div>
+                <div class="service-description">Pay TV subscriptions</div>
+            </div>
+            
+            <!-- Results Service -->
+            <div class="service-card" data-service="result">
+                <div class="service-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="service-title">Results</div>
+                <div class="service-description">Check exam results</div>
+            </div>
+            
+            <!-- Contact Service -->
+            <div class="service-card" data-service="contact">
+                <div class="service-icon">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="service-title">Contact</div>
+                <div class="service-description">Get in touch with us</div>
+            </div>
+        </div>
+        
+        <!-- Recent Transactions -->
+        <div class="transactions-container">
+            <div class="transaction-header">
+                <div class="section-title" style="margin-bottom: 0;">
+                    <i class="fas fa-history"></i>
+                    Recent Transactions
+                </div>
+                <div class="view-all" id="view-all-transactions">
+                    <span>View All</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            </div>
+            <div class="transaction-list" id="transaction-list">
+                <!-- Transactions will be loaded here -->
+                <div class="transaction-loading">Loading transactions...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-container">
+        <div class="nav-bar">
+            <div class="nav-indicator"></div>
+            <div class="nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-page="services">
+                <i class="fas fa-th-large"></i>
+                <span>Services</span>
+            </div>
+            <div class="nav-item" data-page="transactions">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </div>
+            <div class="nav-item" data-page="account">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration - Use client-side config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAQGxYFhHnZ_WKS1LJ-Z6G_aGJRgQinHjA",
+            authDomain: "veltrawave-vtu.firebaseapp.com",
+            projectId: "veltrawave-vtu",
+            storageBucket: "veltrawave-vtu.appspot.com",
+            messagingSenderId: "431351611304",
+            appId: "1:431351611304:web:YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // DOM Elements
+        const notificationIcon = document.getElementById('notification-icon');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        const notificationList = document.getElementById('notification-list');
+        const notificationCount = document.getElementById('notification-count');
+        const markAllRead = document.getElementById('mark-all-read');
+        const profileIcon = document.getElementById('profile-icon');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        const transactionList = document.getElementById('transaction-list');
+        const viewAllTransactions = document.getElementById('view-all-transactions');
+        const serviceCards = document.querySelectorAll('.service-card');
+        const navItems = document.querySelectorAll('.nav-item');
+        const navIndicator = document.querySelector('.nav-indicator');
+        const toastNotification = document.getElementById('toast-notification');
+        const userBalance = document.getElementById('user-balance');
+
+        // Loading Animation
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize the app
+            await initApp();
+            
+            // Hide loading screen after initialization
+            setTimeout(function() {
+                document.querySelector('.loading-overlay').classList.add('hide');
+            }, 1000);
+        });
+
+        // Initialize the app
+        async function initApp() {
+            // Check if running in Telegram WebApp
+            let userId = null;
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tg = window.Telegram.WebApp;
+                tg.expand(); // Expand the web app to full view
+                
+                const tgUser = tg.initDataUnsafe?.user;
+                if (tgUser) {
+                    userId = tgUser.id.toString();
+                    console.log("Telegram user ID:", userId);
+                    await loadUserData(userId);
+                } else {
+                    console.log("No Telegram user data available");
+                    loadMockUserData();
+                }
+            } else {
+                console.log("Not in Telegram WebApp - using test mode");
+                loadMockUserData();
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Set initial indicator position for navigation
+            setIndicatorPosition(document.querySelector('.nav-item.active'));
+            
+            // Check if we're on a service page and set the active nav
+            checkActivePage();
+            
+            // Setup real-time notification listeners
+            if (userId) {
+                setupNotificationListeners(userId);
+            }
+        }
+
+        // Load user data from Firestore
+        async function loadUserData(userId) {
+            try {
+                const userRef = db.collection("users").doc(userId);
+                const doc = await userRef.get();
+                
+                if (doc.exists) {
+                    const userData = doc.data();
+                    displayUserData(userData);
+                    
+                    // Load dependent data
+                    loadNotifications(userId);
+                    loadTransactions(userId);
+                } else {
+                    console.log("No user document found. Creating new user.");
+                    
+                    // Get Telegram user data if available
+                    let firstName = "User";
+                    let lastName = "";
+                    
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+                        if (tgUser) {
+                            firstName = tgUser.first_name || "User";
+                            lastName = tgUser.last_name || "";
+                        }
+                    }
+                    
+                    // Create new user
+                    const newUser = {
+                        id: userId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        balance: 0.00,
+                        created_at: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    await userRef.set(newUser);
+                    displayUserData(newUser);
+                    
+                    // Add welcome notification
+                    addNotification(userId, "Welcome to VeltraWave VTU! Your account has been created successfully.", "system");
+                }
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                loadMockUserData();
+            }
+        }
+
+        // Display user data in the UI
+        function displayUserData(userData) {
+            // Format balance with commas
+            const formattedBalance = userData.balance.toLocaleString('en-NG', {
+                style: 'currency',
+                currency: 'NGN',
+                minimumFractionDigits: 2
+            }).replace('NGN', '₦');
+            
+            userBalance.textContent = formattedBalance;
+        }
+
+        // Load mock user data for testing
+        function loadMockUserData() {
+            const mockUser = {
+                id: 'user123',
+                first_name: 'John',
+                last_name: 'Doe',
+                balance: 125750.00
+            };
+            
+            displayUserData(mockUser);
+            loadMockNotifications();
+            loadMockTransactions();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Notification icon click
+            notificationIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('show');
+                profileDropdown.classList.remove('show');
+            });
+            
+            // Profile icon click
+            profileIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('show');
+                notificationDropdown.classList.remove('show');
+            });
+            
+            // Mark all notifications as read
+            markAllRead.addEventListener('click', function() {
+                markAllNotificationsAsRead();
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function() {
+                notificationDropdown.classList.remove('show');
+                profileDropdown.classList.remove('show');
+            });
+            
+            // View all transactions
+            viewAllTransactions.addEventListener('click', function() {
+                window.location.href = 'not.html';
+            });
+            
+            // Service cards click
+            serviceCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const service = this.dataset.service;
+                    window.location.href = `${service}.html`;
+                });
+            });
+            
+            // Navigation items click
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Remove active class from all items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Move indicator
+                    setIndicatorPosition(this);
+                    
+                    // Create ripple effect
+                    createRippleEffect(e);
+                    
+                    // Navigate to the corresponding page
+                    const page = this.dataset.page;
+                    if (page === 'home') {
+                        window.location.href = 'index.html';
+                    } else if (page === 'transactions') {
+                        window.location.href = 'not.html';
+                    } else if (page === 'services') {
+                        // You can decide which service page to navigate to
+                        window.location.href = 'data.html';
+                    } else if (page === 'account') {
+                        // Profile page
+                        window.location.href = 'profile.html';
+                    }
+                });
+            });
+            
+            // My profile link
+            document.getElementById('my-profile-link').addEventListener('click', function() {
+                window.location.href = 'profile.html';
+            });
+            
+            // Contact us link
+            document.getElementById('contact-us-link').addEventListener('click', function() {
+                window.location.href = 'contact.html';
+            });
+            
+            // Fund wallet button
+            document.querySelector('.fund-wallet-btn').addEventListener('click', function() {
+                window.location.href = 'fund-wallet.html';
+            });
+        }
+
+        // Load notifications from Firebase
+        function loadNotifications(userId) {
+            // Clear the notification list
+            notificationList.innerHTML = '';
+            
+            // Get notifications for the current user
+            db.collection('users').doc(userId).collection('notifications')
+                .orderBy('timestamp', 'desc')
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        notificationList.innerHTML = '<div class="notification-empty">No notifications yet</div>';
+                        notificationCount.textContent = '0';
+                        notificationCount.style.display = 'none';
+                        return;
+                    }
+                    
+                    let unreadCount = 0;
+                    
+                    querySnapshot.forEach((doc) => {
+                        const notification = doc.data();
+                        const notificationItem = document.createElement('div');
+                        notificationItem.className = 'notification-item';
+                        
+                        // Check if notification is unread
+                        if (!notification.read) {
+                            unreadCount++;
+                            notificationItem.innerHTML = `
+                                <div class="notification-dot"></div>
+                                <div class="notification-content">
+                                    <div class="notification-message">${notification.text}</div>
+                                    <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                                </div>
+                            `;
+                        } else {
+                            notificationItem.innerHTML = `
+                                <div class="notification-content">
+                                    <div class="notification-message">${notification.text}</div>
+                                    <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Add click event to mark as read
+                        notificationItem.addEventListener('click', function() {
+                            markNotificationAsRead(userId, doc.id);
+                        });
+                        
+                        notificationList.appendChild(notificationItem);
+                    });
+                    
+                    // Update notification count
+                    notificationCount.textContent = unreadCount.toString();
+                    if (unreadCount === 0) {
+                        notificationCount.style.display = 'none';
+                    } else {
+                        notificationCount.style.display = 'flex';
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading notifications: ", error);
+                    notificationList.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
+                });
+        }
+
+        // Load mock notifications for testing
+        function loadMockNotifications() {
+            notificationList.innerHTML = '';
+            
+            const mockNotifications = [
+                {
+                    id: 'not1',
+                    text: 'Your wallet has been funded with ₦5,000',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+                    read: false
+                },
+                {
+                    id: 'not2',
+                    text: 'Your data purchase of 1GB was successful',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+                    read: true
+                },
+                {
+                    id: 'not3',
+                    text: 'Welcome to VeltraWave VTU!',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+                    read: true
+                }
+            ];
+            
+            let unreadCount = 0;
+            
+            mockNotifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = 'notification-item';
+                
+                if (!notification.read) {
+                    unreadCount++;
+                    notificationItem.innerHTML = `
+                        <div class="notification-dot"></div>
+                        <div class="notification-content">
+                            <div class="notification-message">${notification.text}</div>
+                            <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                        </div>
+                    `;
+                } else {
+                    notificationItem.innerHTML = `
+                        <div class="notification-content">
+                            <div class="notification-message">${notification.text}</div>
+                            <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                        </div>
+                    `;
+                }
+                
+                notificationList.appendChild(notificationItem);
+            });
+            
+            notificationCount.textContent = unreadCount.toString();
+            if (unreadCount === 0) {
+                notificationCount.style.display = 'none';
+            } else {
+                notificationCount.style.display = 'flex';
+            }
+        }
+
+        // Mark a notification as read
+        function markNotificationAsRead(userId, notificationId) {
+            db.collection('users').doc(userId).collection('notifications').doc(notificationId).update({
+                read: true
+            })
+            .then(() => {
+                // Reload notifications
+                loadNotifications(userId);
+            })
+            .catch((error) => {
+                console.error("Error marking notification as read: ", error);
+            });
+        }
+
+        // Mark all notifications as read
+        function markAllNotificationsAsRead() {
+            // Get Telegram user ID if available
+            let userId = 'user123'; // Default for testing
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+                if (tgUser) {
+                    userId = tgUser.id.toString();
+                }
+            }
+            
+            db.collection('users').doc(userId).collection('notifications')
+                .where('read', '==', false)
+                .get()
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    
+                    querySnapshot.forEach((doc) => {
+                        batch.update(doc.ref, { read: true });
+                    });
+                    
+                    return batch.commit();
+                })
+                .then(() => {
+                    // Reload notifications
+                    loadNotifications(userId);
+                })
+                .catch((error) => {
+                    console.error("Error marking all notifications as read: ", error);
+                });
+        }
+
+        // Load transactions
+        function loadTransactions(userId) {
+            // Clear the transaction list
+            transactionList.innerHTML = '';
+            
+            // Get transactions for the current user
+            db.collection('users').doc(userId).collection('transactions')
+                .orderBy('timestamp', 'desc')
+                .limit(5)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        transactionList.innerHTML = '<div class="transaction-loading">No transactions yet</div>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const transaction = doc.data();
+                        const transactionItem = document.createElement('div');
+                        transactionItem.className = 'transaction-item';
+                        
+                        // Determine transaction type icon and class
+                        let iconClass = 'data';
+                        let icon = 'fas fa-wifi';
+                        
+                        if (transaction.type === 'airtime') {
+                            iconClass = 'airtime';
+                            icon = 'fas fa-phone-alt';
+                        } else if (transaction.type === 'tv' || transaction.type === 'cable') {
+                            iconClass = 'tv';
+                            icon = 'fas fa-tv';
+                        } else if (transaction.type === 'wallet' || transaction.type === 'deposit') {
+                            iconClass = 'wallet';
+                            icon = 'fas fa-wallet';
+                        } else if (transaction.type === 'game') {
+                            iconClass = 'game';
+                            icon = 'fas fa-gamepad';
+                        }
+                        
+                        // Determine amount class
+                        const amountClass = transaction.amount > 0 ? 'amount-positive' : 'amount-negative';
+                        
+                        transactionItem.innerHTML = `
+                            <div class="transaction-info">
+                                <div class="transaction-icon ${iconClass}">
+                                    <i class="${icon}"></i>
+                                </div>
+                                <div class="transaction-details">
+                                    <h4>${transaction.title || transaction.description}</h4>
+                                    <p>${formatTimestamp(transaction.timestamp)}</p>
+                                </div>
+                            </div>
+                            <div class="transaction-amount ${amountClass}">${formatAmount(transaction.amount)}</div>
+                        `;
+                        
+                        transactionList.appendChild(transactionItem);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading transactions: ", error);
+                    transactionList.innerHTML = '<div class="transaction-loading">Error loading transactions</div>';
+                });
+        }
+
+        // Load mock transactions for testing
+        function loadMockTransactions() {
+            transactionList.innerHTML = '';
+            
+            const mockTransactions = [
+                {
+                    id: 'trans1',
+                    type: 'data',
+                    amount: -2000,
+                    title: 'Data Purchase',
+                    description: '1GB MTN Data',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 30) // 30 minutes ago
+                },
+                {
+                    id: 'trans2',
+                    type: 'wallet',
+                    amount: 5000,
+                    title: 'Wallet Funding',
+                    description: 'Bank Transfer',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
+                },
+                {
+                    id: 'trans3',
+                    type: 'airtime',
+                    amount: -1000,
+                    title: 'Airtime Purchase',
+                    description: 'MTN Airtime',
+                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5) // 5 hours ago
+                }
+            ];
+            
+            mockTransactions.forEach(transaction => {
+                const transactionItem = document.createElement('div');
+                transactionItem.className = 'transaction-item';
+                
+                // Determine transaction type icon and class
+                let iconClass = 'data';
+                let icon = 'fas fa-wifi';
+                
+                if (transaction.type === 'airtime') {
+                    iconClass = 'airtime';
+                    icon = 'fas fa-phone-alt';
+                } else if (transaction.type === 'tv' || transaction.type === 'cable') {
+                    iconClass = 'tv';
+                    icon = 'fas fa-tv';
+                } else if (transaction.type === 'wallet' || transaction.type === 'deposit') {
+                    iconClass = 'wallet';
+                    icon = 'fas fa-wallet';
+                } else if (transaction.type === 'game') {
+                    iconClass = 'game';
+                    icon = 'fas fa-gamepad';
+                }
+                
+                // Determine amount class
+                const amountClass = transaction.amount > 0 ? 'amount-positive' : 'amount-negative';
+                
+                transactionItem.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-icon ${iconClass}">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <h4>${transaction.title}</h4>
+                            <p>${formatTimestamp(transaction.timestamp)}</p>
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">${formatAmount(transaction.amount)}</div>
+                `;
+                
+                transactionList.appendChild(transactionItem);
+            });
+        }
+
+        // Add a notification
+        function addNotification(userId, message, type = 'transaction') {
+            return db.collection('users').doc(userId).collection('notifications').add({
+                text: message,
+                type: type,
+                read: false,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        // Show toast notification
+        function showToastNotification(message) {
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
+            
+            setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Setup real-time notification listeners
+        function setupNotificationListeners(userId) {
+            db.collection('users').doc(userId).collection('notifications')
+                .where('read', '==', false)
+                .onSnapshot((snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            // New notification
+                            const notification = change.doc.data();
+                            
+                            // Show toast notification
+                            showToastNotification(notification.text);
+                            
+                            // Update notification count
+                            const currentCount = parseInt(notificationCount.textContent || '0');
+                            notificationCount.textContent = (currentCount + 1).toString();
+                            notificationCount.style.display = 'flex';
+                            
+                            // Reload notifications list
+                            loadNotifications(userId);
+                        }
+                    });
+                });
+        }
+
+        // Format timestamp
+        function formatTimestamp(timestamp) {
+            if (!timestamp) {
+                return 'Just now';
+            }
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffSec < 60) {
+                return 'Just now';
+            } else if (diffMin < 60) {
+                return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+            } else if (diffHour < 24) {
+                return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+            } else if (diffDay < 7) {
+                return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        // Format amount
+        function formatAmount(amount) {
+            return amount > 0 ? `+₦${Math.abs(amount).toLocaleString()}` : `-₦${Math.abs(amount).toLocaleString()}`;
+        }
+
+        // Set indicator position for navigation
+        function setIndicatorPosition(item) {
+            const itemRect = item.getBoundingClientRect();
+            const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
+            
+            navIndicator.style.width = `${itemRect.width}px`;
+            navIndicator.style.left = `${itemRect.left - navRect.left}px`;
+        }
+
+        // Create ripple effect
+        function createRippleEffect(e) {
+            const navBar = document.querySelector('.nav-bar');
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const rect = navBar.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            navBar.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 800);
+        }
+
+        // Check active page and set the active nav item
+        function checkActivePage() {
+            const currentPage = window.location.pathname.split('/').pop();
+            
+            if (currentPage === 'index.html' || !currentPage) {
+                // Home page
+                setActiveNavItem('home');
+            } else if (currentPage === 'not.html') {
+                // Transactions page
+                setActiveNavItem('transactions');
+            } else if (['data.html', 'airtime.html', 'game.html', 'store.html', 'cable.html', 'result.html'].includes(currentPage)) {
+                // Service pages
+                setActiveNavItem('services');
+                
+                // Also highlight the active service card if we're on the home page
+                if (document.querySelector('.services-grid')) {
+                    const serviceType = currentPage.replace('.html', '');
+                    const serviceCard = document.querySelector(`.service-card[data-service="${serviceType}"]`);
+                    if (serviceCard) {
+                        serviceCard.classList.add('active');
+                    }
+                }
+            } else if (currentPage === 'profile.html') {
+                // Account page
+                setActiveNavItem('account');
+            }
+        }
+
+        // Set active nav item
+        function setActiveNavItem(page) {
+            navItems.forEach(item => {
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                    setIndicatorPosition(item);
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Example function to simulate a transaction (for testing)
+        function simulateTransaction() {
+            // Get Telegram user ID if available
+            let userId = 'user123'; // Default for testing
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+                if (tgUser) {
+                    userId = tgUser.id.toString();
+                }
+            }
+            
+            const transactionTypes = ['data', 'airtime', 'game', 'cable', 'deposit', 'withdrawal'];
+            const randomType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+            const amount = randomType === 'withdrawal' ? -Math.floor(Math.random() * 5000) : Math.floor(Math.random() * 5000);
+            
+            const transaction = {
+                type: randomType,
+                amount: amount,
+                title: `${randomType.charAt(0).toUpperCase() + randomType.slice(1)} Transaction`,
+                description: `Test ${randomType} transaction`,
+                status: 'success',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Add transaction to user's transactions
+            db.collection('users').doc(userId).collection('transactions').add(transaction)
+                .then((docRef) => {
+                    console.log("Transaction added with ID: ", docRef.id);
+                    
+                    // Add notification for the transaction
+                    const message = `Your ${transaction.title} of ${formatAmount(Math.abs(amount))} was successful.`;
+                    addNotification(userId, message);
+                    
+                    // Reload transactions
+                    loadTransactions(userId);
+                })
+                .catch((error) => {
+                    console.error("Error adding transaction: ", error);
+                });
+        }
+    </script>
+</body>
 </html>
