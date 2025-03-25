@@ -120,16 +120,9 @@
             align-items: center;
         }
         
-        .logo-icon {
-            margin-right: 8px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 8px;
-            width: 32px;
+        .logo img {
             height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
+            margin-right: 8px;
         }
         
         .header-actions {
@@ -705,6 +698,25 @@
             transition: all 0.3s ease;
         }
         
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+        }
+        
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(45, 127, 249, 0.3);
+        }
+        
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
         /* Loading Animation */
         .loading-overlay {
             position: fixed;
@@ -951,41 +963,22 @@
     <!-- Header -->
     <header class="header">
         <div class="logo">
-            <div class="logo-icon">
-                <i class="fas fa-water"></i>
-            </div>
+            <img src="logo.png" alt="VeltraWave Logo">
             VeltraWave
         </div>
         <div class="header-actions">
             <div class="header-icon" id="notification-icon">
                 <i class="fas fa-bell"></i>
-                <div class="notification-badge">3</div>
+                <div class="notification-badge" id="notification-count">0</div>
                 
                 <!-- Notification Dropdown -->
                 <div class="dropdown notification-dropdown" id="notification-dropdown">
                     <div class="notification-header">
                         <div class="notification-title">Notifications</div>
-                        <div class="mark-read">Mark all as read</div>
+                        <div class="mark-read" id="mark-all-read">Mark all as read</div>
                     </div>
-                    <div class="notification-item">
-                        <div class="notification-dot"></div>
-                        <div class="notification-content">
-                            <div class="notification-message">Your account has been credited with ₦5,000</div>
-                            <div class="notification-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-dot"></div>
-                        <div class="notification-content">
-                            <div class="notification-message">50% discount on data bundles today only!</div>
-                            <div class="notification-time">5 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="notification-item">
-                        <div class="notification-content">
-                            <div class="notification-message">Welcome to VeltraWave VTU Dashboard</div>
-                            <div class="notification-time">1 day ago</div>
-                        </div>
+                    <div id="notification-list">
+                        <!-- Notifications will be dynamically inserted here -->
                     </div>
                 </div>
             </div>
@@ -994,23 +987,15 @@
                 
                 <!-- Profile Dropdown -->
                 <div class="dropdown" id="profile-dropdown">
-                    <div class="dropdown-item">
+                    <div class="dropdown-item" id="my-profile-link">
                         <i class="fas fa-user-circle"></i>
                         <span>My Profile</span>
-                    </div>
-                    <div class="dropdown-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </div>
-                    <div class="dropdown-item">
-                        <i class="fas fa-history"></i>
-                        <span>Transaction History</span>
                     </div>
                     <div class="dropdown-item" id="contact-us-link">
                         <i class="fas fa-headset"></i>
                         <span>Contact Us</span>
                     </div>
-                    <div class="dropdown-item">
+                    <div class="dropdown-item" id="logout-link">
                         <i class="fas fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </div>
@@ -1028,11 +1013,37 @@
                 <div class="card-decoration decoration-2"></div>
                 <div class="balance-card-content">
                     <div class="balance-label">Available Balance</div>
-                    <div class="balance-amount">₦125,750.00</div>
+                    <div class="balance-amount" id="user-balance">Loading...</div>
                     <button class="fund-wallet-btn">
                         <i class="fas fa-wallet"></i>
                         Fund Wallet
                     </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Info Section -->
+        <div class="section-title">
+            <i class="fas fa-user"></i>
+            User Information
+        </div>
+        <div class="user-info-container" style="background: linear-gradient(135deg, rgba(45, 127, 249, 0.1), rgba(140, 82, 255, 0.1)); border-radius: 20px; padding: 20px; margin-bottom: 32px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                <div style="background: rgba(255, 255, 255, 0.08); padding: 16px; border-radius: 12px;">
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px;">Full Name</div>
+                    <div style="font-weight: 600; font-size: 1.1rem;" id="user-name">Loading...</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.08); padding: 16px; border-radius: 12px;">
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px;">Email</div>
+                    <div style="font-weight: 600; font-size: 1.1rem;" id="user-email">Loading...</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.08); padding: 16px; border-radius: 12px;">
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px;">Phone Number</div>
+                    <div style="font-weight: 600; font-size: 1.1rem;" id="user-phone">Loading...</div>
+                </div>
+                <div style="background: rgba(255, 255, 255, 0.08); padding: 16px; border-radius: 12px;">
+                    <div style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px;">User ID</div>
+                    <div style="font-weight: 600; font-size: 1.1rem;" id="user-id">Loading...</div>
                 </div>
             </div>
         </div>
@@ -1080,7 +1091,7 @@
             </div>
             
             <!-- Cable TV Service -->
-            <div class="service-card" data-service="tv">
+            <div class="service-card" data-service="cable">
                 <div class="service-icon">
                     <i class="fas fa-tv"></i>
                 </div>
@@ -1089,7 +1100,7 @@
             </div>
             
             <!-- Results Service -->
-            <div class="service-card" data-service="results">
+            <div class="service-card" data-service="result">
                 <div class="service-icon">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
@@ -1119,42 +1130,10 @@
                     <i class="fas fa-arrow-right"></i>
                 </div>
             </div>
-            <div class="transaction-list">
-                <div class="transaction-item">
-                    <div class="transaction-info">
-                        <div class="transaction-icon data">
-                            <i class="fas fa-wifi"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <h4>MTN Data - 10GB</h4>
-                            <p>Today, 10:45 AM</p>
-                        </div>
-                    </div>
-                    <div class="transaction-amount amount-negative">-₦3,000</div>
-                </div>
-                <div class="transaction-item">
-                    <div class="transaction-info">
-                        <div class="transaction-icon airtime">
-                            <i class="fas fa-phone-alt"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <h4>Airtel Airtime</h4>
-                            <p>Yesterday, 2:30 PM</p>
-                        </div>
-                    </div>
-                    <div class="transaction-amount amount-negative">-₦1,000</div>
-                </div>
-                <div class="transaction-item">
-                    <div class="transaction-info">
-                        <div class="transaction-icon wallet">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="transaction-details">
-                            <h4>Wallet Funding</h4>
-                            <p>20 Jul, 11:05 AM</p>
-                        </div>
-                    </div>
-                    <div class="transaction-amount amount-positive">+₦20,000</div>
+            <div class="transaction-list" id="transaction-list">
+                <!-- Transactions will be dynamically inserted here -->
+                <div class="transaction-item" style="text-align: center; background: none; border: none;">
+                    <div style="width: 100%;">Loading transactions...</div>
                 </div>
             </div>
         </div>
@@ -1183,57 +1162,424 @@
         </div>
     </div>
     
-    <!-- Store Popup -->
-    <div class="popup-overlay" id="store-popup">
-        <div class="popup">
-            <div class="popup-close" id="close-popup">
-                <i class="fas fa-times"></i>
-            </div>
-            <div class="popup-icon">
-                <i class="fas fa-shopping-bag"></i>
-            </div>
-            <div class="popup-title">Visit Our Store</div>
-            <div class="popup-description">
-                Discover amazing digital products and templates at unbeatable prices in our store.
-            </div>
-            <div class="popup-actions">
-                <button class="popup-btn secondary-btn" id="popup-later">
-                    Later
-                </button>
-                <button class="popup-btn primary-btn" id="popup-visit">
-                    <i class="fas fa-shopping-bag"></i>
-                    Visit Store
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
     <script>
+        // Firebase Configuration - Will be populated from environment variables
+        const firebaseConfig = {
+            projectId: "",
+            appId: "",
+            databaseURL: "",
+            storageBucket: "",
+            locationId: "",
+            apiKey: "",
+            authDomain: "",
+            messagingSenderId: "",
+        };
+        
+        // Initialize Firebase
+        let firebaseInitialized = false;
+        let currentUser = null;
+        let db = null;
+        let notificationsRef = null;
+        let transactionsRef = null;
+        let unreadNotificationsCount = 0;
+        
+        // Initialize Firebase when the page loads
+        function initializeFirebase() {
+            try {
+                // Get Firebase config from environment variables
+                fetch('/api/get-firebase-config')
+                    .then(response => response.json())
+                    .then(config => {
+                        // Initialize Firebase with the config
+                        firebase.initializeApp({
+                            projectId: config.FIREBASE_PROJECT_ID,
+                            privateKeyId: config.FIREBASE_PRIVATE_KEY_ID,
+                            privateKey: config.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+                            clientEmail: config.FIREBASE_CLIENT_EMAIL,
+                            clientId: config.FIREBASE_CLIENT_ID,
+                            authUri: config.FIREBASE_AUTH_URI,
+                            tokenUri: config.FIREBASE_TOKEN_URI,
+                            authProviderX509CertUrl: config.FIREBASE_AUTH_PROVIDER_CERT_URL,
+                            clientX509CertUrl: config.FIREBASE_CLIENT_CERT_URL
+                        });
+                        
+                        db = firebase.firestore();
+                        firebaseInitialized = true;
+                        
+                        // Check if user is logged in
+                        firebase.auth().onAuthStateChanged(user => {
+                            if (user) {
+                                currentUser = user;
+                                loadUserData(user.uid);
+                                setupNotifications(user.uid);
+                                loadTransactions(user.uid);
+                            } else {
+                                // Redirect to login page or show login popup
+                                console.log("No user is signed in.");
+                                // For demo purposes, we'll load a mock user
+                                loadMockUserData();
+                            }
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error loading Firebase config:", error);
+                        // Load mock data for demo purposes
+                        loadMockUserData();
+                    });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                // Load mock data for demo purposes
+                loadMockUserData();
+            }
+        }
+        
+        // Load user data from Firestore
+        function loadUserData(userId) {
+            if (!firebaseInitialized || !db) {
+                loadMockUserData();
+                return;
+            }
+            
+            db.collection("users").doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        displayUserData(userData);
+                    } else {
+                        console.log("No such user document!");
+                        loadMockUserData();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting user document:", error);
+                    loadMockUserData();
+                });
+        }
+        
+        // Display user data in the UI
+        function displayUserData(userData) {
+            document.getElementById("user-balance").textContent = `₦${userData.balance.toLocaleString()}`;
+            document.getElementById("user-name").textContent = `${userData.first_name} ${userData.last_name}`;
+            document.getElementById("user-email").textContent = userData.email || "Not provided";
+            document.getElementById("user-phone").textContent = userData.phone_number || "Not provided";
+            document.getElementById("user-id").textContent = userData.user_id || "Not available";
+        }
+        
+        // Load mock user data for demo purposes
+        function loadMockUserData() {
+            const mockUserData = {
+                balance: 10,
+                email: "",
+                first_name: "Bobby",
+                last_name: "Ricch",
+                phone_number: "07067479043",
+                referred_by: "",
+                role: "user",
+                user_id: "5966603094",
+                vtu_id: "596660"
+            };
+            
+            displayUserData(mockUserData);
+            loadMockTransactions();
+            setupMockNotifications();
+        }
+        
+        // Setup notifications listener
+        function setupNotifications(userId) {
+            if (!firebaseInitialized || !db) {
+                setupMockNotifications();
+                return;
+            }
+            
+            notificationsRef = db.collection("users").doc(userId).collection("notifications")
+                .orderBy("timestamp", "desc");
+                
+            notificationsRef.onSnapshot((snapshot) => {
+                const notificationsList = document.getElementById("notification-list");
+                notificationsList.innerHTML = "";
+                
+                unreadNotificationsCount = 0;
+                
+                snapshot.forEach((doc) => {
+                    const notification = doc.data();
+                    const notificationItem = createNotificationElement(notification, doc.id);
+                    notificationsList.appendChild(notificationItem);
+                    
+                    if (!notification.read) {
+                        unreadNotificationsCount++;
+                    }
+                });
+                
+                updateNotificationBadge();
+            });
+        }
+        
+        // Create notification element
+        function createNotificationElement(notification, notificationId) {
+            const notificationItem = document.createElement("div");
+            notificationItem.className = "notification-item";
+            
+            if (!notification.read) {
+                const notificationDot = document.createElement("div");
+                notificationDot.className = "notification-dot";
+                notificationItem.appendChild(notificationDot);
+            }
+            
+            const notificationContent = document.createElement("div");
+            notificationContent.className = "notification-content";
+            
+            const notificationMessage = document.createElement("div");
+            notificationMessage.className = "notification-message";
+            notificationMessage.textContent = notification.message;
+            
+            const notificationTime = document.createElement("div");
+            notificationTime.className = "notification-time";
+            notificationTime.textContent = formatTimestamp(notification.timestamp);
+            
+            notificationContent.appendChild(notificationMessage);
+            notificationContent.appendChild(notificationTime);
+            notificationItem.appendChild(notificationContent);
+            
+            // Mark notification as read when clicked
+            notificationItem.addEventListener("click", () => {
+                if (!notification.read && firebaseInitialized && db) {
+                    db.collection("users").doc(currentUser.uid).collection("notifications")
+                        .doc(notificationId).update({
+                            read: true
+                        });
+                }
+            });
+            
+            return notificationItem;
+        }
+        
+        // Update notification badge count
+        function updateNotificationBadge() {
+            const badge = document.getElementById("notification-count");
+            badge.textContent = unreadNotificationsCount;
+            
+            if (unreadNotificationsCount === 0) {
+                badge.style.display = "none";
+            } else {
+                badge.style.display = "flex";
+            }
+        }
+        
+        // Setup mock notifications for demo
+        function setupMockNotifications() {
+            const mockNotifications = [
+                {
+                    message: "Your account has been credited with ₦5,000",
+                    timestamp: new Date().getTime() - 7200000, // 2 hours ago
+                    read: false
+                },
+                {
+                    message: "50% discount on data bundles today only!",
+                    timestamp: new Date().getTime() - 18000000, // 5 hours ago
+                    read: false
+                },
+                {
+                    message: "Welcome to VeltraWave VTU Dashboard",
+                    timestamp: new Date().getTime() - 86400000, // 1 day ago
+                    read: true
+                }
+            ];
+            
+            const notificationsList = document.getElementById("notification-list");
+            notificationsList.innerHTML = "";
+            
+            unreadNotificationsCount = 0;
+            
+            mockNotifications.forEach((notification, index) => {
+                const notificationItem = createNotificationElement(notification, `mock-${index}`);
+                notificationsList.appendChild(notificationItem);
+                
+                if (!notification.read) {
+                    unreadNotificationsCount++;
+                }
+            });
+            
+            updateNotificationBadge();
+        }
+        
+        // Load transactions from Firestore
+        function loadTransactions(userId) {
+            if (!firebaseInitialized || !db) {
+                loadMockTransactions();
+                return;
+            }
+            
+            transactionsRef = db.collection("users").doc(userId).collection("transactions")
+                .orderBy("timestamp", "desc")
+                .limit(5);
+                
+            transactionsRef.onSnapshot((snapshot) => {
+                const transactionList = document.getElementById("transaction-list");
+                transactionList.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    const emptyMessage = document.createElement("div");
+                    emptyMessage.className = "transaction-item";
+                    emptyMessage.style.textAlign = "center";
+                    emptyMessage.style.background = "none";
+                    emptyMessage.style.border = "none";
+                    emptyMessage.innerHTML = "<div style='width: 100%;'>No transactions yet</div>";
+                    transactionList.appendChild(emptyMessage);
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const transaction = doc.data();
+                    const transactionItem = createTransactionElement(transaction);
+                    transactionList.appendChild(transactionItem);
+                });
+            });
+        }
+        
+        // Create transaction element
+        function createTransactionElement(transaction) {
+            const transactionItem = document.createElement("div");
+            transactionItem.className = "transaction-item";
+            
+            const transactionInfo = document.createElement("div");
+            transactionInfo.className = "transaction-info";
+            
+            const transactionIcon = document.createElement("div");
+            transactionIcon.className = `transaction-icon ${transaction.type || 'data'}`;
+            
+            const iconElement = document.createElement("i");
+            
+            switch (transaction.type) {
+                case "data":
+                    iconElement.className = "fas fa-wifi";
+                    break;
+                case "airtime":
+                    iconElement.className = "fas fa-phone-alt";
+                    break;
+                case "tv":
+                    iconElement.className = "fas fa-tv";
+                    break;
+                case "wallet":
+                    iconElement.className = "fas fa-wallet";
+                    break;
+                default:
+                    iconElement.className = "fas fa-exchange-alt";
+            }
+            
+            transactionIcon.appendChild(iconElement);
+            
+            const transactionDetails = document.createElement("div");
+            transactionDetails.className = "transaction-details";
+            
+            const transactionTitle = document.createElement("h4");
+            transactionTitle.textContent = transaction.title || "Transaction";
+            
+            const transactionDate = document.createElement("p");
+            transactionDate.textContent = formatTimestamp(transaction.timestamp);
+            
+            transactionDetails.appendChild(transactionTitle);
+            transactionDetails.appendChild(transactionDate);
+            
+            transactionInfo.appendChild(transactionIcon);
+            transactionInfo.appendChild(transactionDetails);
+            
+            const transactionAmount = document.createElement("div");
+            transactionAmount.className = `transaction-amount ${transaction.amount > 0 ? 'amount-positive' : 'amount-negative'}`;
+            transactionAmount.textContent = `${transaction.amount > 0 ? '+' : ''}₦${Math.abs(transaction.amount).toLocaleString()}`;
+            
+            transactionItem.appendChild(transactionInfo);
+            transactionItem.appendChild(transactionAmount);
+            
+            return transactionItem;
+        }
+        
+        // Load mock transactions for demo
+        function loadMockTransactions() {
+            const mockTransactions = [
+                {
+                    type: "data",
+                    title: "MTN Data - 10GB",
+                    amount: -3000,
+                    timestamp: new Date().getTime() - 3600000 // 1 hour ago
+                },
+                {
+                    type: "airtime",
+                    title: "Airtel Airtime",
+                    amount: -1000,
+                    timestamp: new Date().getTime() - 86400000 // 1 day ago
+                },
+                {
+                    type: "wallet",
+                    title: "Wallet Funding",
+                    amount: 20000,
+                    timestamp: new Date().getTime() - 172800000 // 2 days ago
+                }
+            ];
+            
+            const transactionList = document.getElementById("transaction-list");
+            transactionList.innerHTML = "";
+            
+            mockTransactions.forEach(transaction => {
+                const transactionItem = createTransactionElement(transaction);
+                transactionList.appendChild(transactionItem);
+            });
+        }
+        
+        // Format timestamp to readable date
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) {
+                return `Today, ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')} ${date.getHours() >= 12 ? 'PM' : 'AM'}`;
+            } else if (diffDays === 1) {
+                return `Yesterday, ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')} ${date.getHours() >= 12 ? 'PM' : 'AM'}`;
+            } else {
+                return `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}, ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')} ${date.getHours() >= 12 ? 'PM' : 'AM'}`;
+            }
+        }
+        
+        // Mark all notifications as read
+        document.getElementById("mark-all-read").addEventListener("click", (e) => {
+            e.stopPropagation();
+            
+            if (firebaseInitialized && db && currentUser) {
+                db.collection("users").doc(currentUser.uid).collection("notifications")
+                    .where("read", "==", false)
+                    .get()
+                    .then((snapshot) => {
+                        const batch = db.batch();
+                        
+                        snapshot.forEach((doc) => {
+                            batch.update(doc.ref, { read: true });
+                        });
+                        
+                        return batch.commit();
+                    })
+                    .then(() => {
+                        console.log("All notifications marked as read");
+                    })
+                    .catch((error) => {
+                        console.error("Error marking notifications as read:", error);
+                    });
+            }
+        });
+        
         // Loading Animation
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Firebase
+            initializeFirebase();
+            
             setTimeout(function() {
                 document.querySelector('.loading-overlay').classList.add('hide');
             }, 2000);
-            
-            // Show store popup after loading
-            setTimeout(function() {
-                document.getElementById('store-popup').classList.add('show');
-            }, 3000);
-        });
-        
-        // Close popup
-        document.getElementById('close-popup').addEventListener('click', function() {
-            document.getElementById('store-popup').classList.remove('show');
-        });
-        
-        document.getElementById('popup-later').addEventListener('click', function() {
-            document.getElementById('store-popup').classList.remove('show');
-        });
-        
-        document.getElementById('popup-visit').addEventListener('click', function() {
-            document.getElementById('store-popup').classList.remove('show');
-            // Navigate to store (in a real app)
-            console.log('Navigating to store...');
         });
         
         // Navigation Bar
@@ -1286,8 +1632,9 @@
                     ripple.remove();
                 }, 800);
                 
-                // In a real app, you would navigate to the corresponding page
-                console.log(`Navigating to ${this.dataset.page} page...`);
+                // Handle navigation
+                const page = this.dataset.page;
+                console.log(`Navigating to ${page} page...`);
             });
         });
         
@@ -1299,11 +1646,30 @@
                 const service = this.dataset.service;
                 console.log(`Selected service: ${service}`);
                 
-                // Handle contact service navigation
-                if (service === 'contact') {
-                    window.location.href = 'contact.html';
+                // Navigate to the appropriate service page
+                switch(service) {
+                    case 'data':
+                        window.location.href = 'data.html';
+                        break;
+                    case 'airtime':
+                        window.location.href = 'airtime.html';
+                        break;
+                    case 'game':
+                        window.location.href = 'games.html';
+                        break;
+                    case 'store':
+                        window.location.href = 'store.html';
+                        break;
+                    case 'cable':
+                        window.location.href = 'cable.html';
+                        break;
+                    case 'result':
+                        window.location.href = 'result.html';
+                        break;
+                    case 'contact':
+                        window.location.href = 'contact.html';
+                        break;
                 }
-                // In a real app, you would navigate to the service page
             });
         });
         
@@ -1312,9 +1678,16 @@
             window.location.href = 'contact.html';
         });
         
+        // My Profile Link
+        document.getElementById('my-profile-link').addEventListener('click', function() {
+            console.log('Navigating to profile page...');
+            // In a real app, you would navigate to the profile page
+        });
+        
         // Fund Wallet Button
         document.querySelector('.fund-wallet-btn').addEventListener('click', function() {
-            window.location.href = 'fund-wallet.html';
+            console.log('Opening fund wallet page...');
+            // In a real app, you would navigate to the fund wallet page
         });
         
         // Dropdown Menus
@@ -1375,4 +1748,3 @@
     </script>
 </body>
 </html>
-
