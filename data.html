@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Data - VeltraWave</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
         
@@ -155,7 +158,7 @@
             position: relative;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            max-width: 300px;
+            max-width: 500px;
             margin: 0 auto;
         }
         
@@ -176,7 +179,7 @@
             top: 4px;
             left: 4px;
             height: calc(100% - 8px);
-            width: calc(50% - 4px);
+            width: calc(33.33% - 4px);
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border-radius: 12px;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -640,6 +643,119 @@
         .automatic-content.active {
             display: block;
             animation: fadeIn 0.5s ease;
+        }
+        
+        /* Requests Content */
+        .requests-content {
+            display: none;
+        }
+        
+        .requests-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .request-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .request-card.pending {
+            border-left-color: var(--warning);
+        }
+        
+        .request-card.completed {
+            border-left-color: var(--success);
+        }
+        
+        .request-card.failed {
+            border-left-color: var(--error);
+        }
+        
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .request-title {
+            font-weight: 600;
+        }
+        
+        .request-status {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .request-status.pending {
+            background: rgba(255, 181, 71, 0.2);
+            color: var(--warning);
+        }
+        
+        .request-status.completed {
+            background: rgba(0, 225, 160, 0.2);
+            color: var(--success);
+        }
+        
+        .request-status.failed {
+            background: rgba(255, 94, 125, 0.2);
+            color: var(--error);
+        }
+        
+        .request-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .request-detail {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .request-detail-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .request-detail-value {
+            font-size: 0.9rem;
+        }
+        
+        .request-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        
+        .request-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .request-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .request-btn.primary {
+            background: rgba(45, 127, 249, 0.2);
+            color: var(--primary);
+        }
+        
+        .request-btn.primary:hover {
+            background: rgba(45, 127, 249, 0.3);
         }
         
         /* Navigation Bar */
@@ -1192,10 +1308,229 @@
             }
         }
         
+        /* Fast Transfer Toggle */
+        .fast-transfer-container {
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .fast-transfer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .fast-transfer-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .fast-transfer-title i {
+            color: var(--success);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: var(--success);
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .fast-transfer-info {
+            display: none;
+            background: rgba(0, 225, 160, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--success);
+            margin-top: 8px;
+        }
+        
+        .fast-transfer-info.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--error);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Notifications Panel */
+        .notifications-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .notifications-panel.show {
+            transform: translateX(0);
+        }
+        
+        .notifications-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notifications-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .notifications-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .notifications-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .notification-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 3px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .notification-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .notification-item.unread {
+            border-left-color: var(--error);
+        }
+        
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+        }
+        
+        .notification-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .notification-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .notification-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+        
+        .notification-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .networks-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .notifications-panel {
+                width: 100%;
+                max-width: 100%;
             }
         }
         
@@ -1224,7 +1559,7 @@
     
     <!-- Header -->
     <header class="header">
-        <div class="back-button">
+        <div class="back-button" id="back-button">
             <i class="fas fa-arrow-left"></i>
         </div>
         <div class="page-title">Buy Data</div>
@@ -1237,7 +1572,7 @@
     <div class="network-switcher" id="network-switcher">
         <div class="network-switcher-title">Select Network Provider</div>
         <div class="network-switcher-grid">
-            <div class="network-switcher-item active" data-network="mtn">
+            <div class="network-switcher-item active" data-network="mtn" data-network-id="1">
                 <div class="network-switcher-logo mtn">
                     <i class="fas fa-signal"></i>
                 </div>
@@ -1246,31 +1581,31 @@
                     <div class="network-switcher-status available">Available</div>
                 </div>
             </div>
-            <div class="network-switcher-item disabled" data-network="airtel">
+            <div class="network-switcher-item" data-network="airtel" data-network-id="2">
                 <div class="network-switcher-logo airtel">
                     <i class="fas fa-signal"></i>
                 </div>
                 <div class="network-switcher-info">
                     <div class="network-switcher-name">Airtel</div>
-                    <div class="network-switcher-status">Coming Soon</div>
+                    <div class="network-switcher-status available">Available</div>
                 </div>
             </div>
-            <div class="network-switcher-item disabled" data-network="glo">
+            <div class="network-switcher-item" data-network="glo" data-network-id="3">
                 <div class="network-switcher-logo glo">
                     <i class="fas fa-signal"></i>
                 </div>
                 <div class="network-switcher-info">
                     <div class="network-switcher-name">Glo</div>
-                    <div class="network-switcher-status">Coming Soon</div>
+                    <div class="network-switcher-status available">Available</div>
                 </div>
             </div>
-            <div class="network-switcher-item disabled" data-network="9mobile">
+            <div class="network-switcher-item" data-network="9mobile" data-network-id="4">
                 <div class="network-switcher-logo etisalat">
                     <i class="fas fa-signal"></i>
                 </div>
                 <div class="network-switcher-info">
                     <div class="network-switcher-name">9mobile</div>
-                    <div class="network-switcher-status">Coming Soon</div>
+                    <div class="network-switcher-status available">Available</div>
                 </div>
             </div>
         </div>
@@ -1284,6 +1619,7 @@
                 <div class="mode-indicator"></div>
                 <div class="mode-option active" data-mode="automatic">Automatic</div>
                 <div class="mode-option" data-mode="manual">Manual</div>
+                <div class="mode-option" data-mode="requests">Requests</div>
             </div>
         </div>
         
@@ -1313,32 +1649,29 @@
             <div class="network-selection">
                 <div class="section-title">Select Network</div>
                 <div class="networks-grid">
-                    <div class="network-card active" data-network="mtn">
+                    <div class="network-card active" data-network="mtn" data-network-id="1">
                         <div class="network-logo mtn">
                             <i class="fas fa-signal"></i>
                         </div>
                         <div class="network-name">MTN</div>
                     </div>
-                    <div class="network-card disabled" data-network="airtel">
+                    <div class="network-card" data-network="airtel" data-network-id="2">
                         <div class="network-logo airtel">
                             <i class="fas fa-signal"></i>
                         </div>
                         <div class="network-name">Airtel</div>
-                        <div class="coming-soon-badge">Soon</div>
                     </div>
-                    <div class="network-card disabled" data-network="glo">
+                    <div class="network-card" data-network="glo" data-network-id="3">
                         <div class="network-logo glo">
                             <i class="fas fa-signal"></i>
                         </div>
                         <div class="network-name">Glo</div>
-                        <div class="coming-soon-badge">Soon</div>
                     </div>
-                    <div class="network-card disabled" data-network="9mobile">
+                    <div class="network-card" data-network="9mobile" data-network-id="4">
                         <div class="network-logo etisalat">
                             <i class="fas fa-signal"></i>
                         </div>
                         <div class="network-name">9mobile</div>
-                        <div class="coming-soon-badge">Soon</div>
                     </div>
                 </div>
             </div>
@@ -1349,9 +1682,9 @@
                     <label class="form-label">Plan Type</label>
                     <select class="form-select" id="plan-type" required>
                         <option value="" selected disabled>Select Plan Type</option>
-                        <option value="data">Data Plan</option>
-                        <option value="social">Social Bundle</option>
-                        <option value="corporate">Corporate Plan</option>
+                        <option value="GIFTING">GIFTING</option>
+                        <option value="SME">SME</option>
+                        <option value="CORPORATE">CORPORATE</option>
                     </select>
                 </div>
                 
@@ -1359,11 +1692,7 @@
                     <label class="form-label">Select Data Plan</label>
                     <select class="form-select" id="data-plan" required>
                         <option value="" selected disabled>Select Data Plan</option>
-                        <option value="500mb">500MB - 1 Day - ₦129</option>
-                        <option value="1gb">1GB - 1 Day - ₦249</option>
-                        <option value="2.5gb">2.5GB - 2 Days - ₦519</option>
-                        <option value="5gb">5GB - 7 Days - ₦1,299</option>
-                        <option value="10gb">10GB - 30 Days - ₦2,499</option>
+                        <!-- Plans will be loaded dynamically based on plan type -->
                     </select>
                 </div>
                 
@@ -1416,6 +1745,23 @@
                 </div>
             </div>
             
+            <!-- Fast Transfer Toggle for Manual Mode -->
+            <div class="fast-transfer-container">
+                <div class="fast-transfer-header">
+                    <div class="fast-transfer-title">
+                        <i class="fas fa-bolt"></i>
+                        Fast Transfer via WhatsApp
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="manual-fast-transfer-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="fast-transfer-info" id="manual-fast-transfer-info">
+                    <i class="fas fa-bolt" style="color: var(--success); margin-right: 8px;"></i> By enabling Fast Transfer, you'll be redirected to WhatsApp after purchase to receive your data instantly. Our agent will process your request immediately, resulting in significantly faster delivery times (usually within 5 minutes).
+                </div>
+            </div>
+            
             <!-- 1-Day Plans -->
             <div class="plan-category">
                 <div class="category-header">
@@ -1429,7 +1775,7 @@
                 </div>
                 
                 <div class="plans-grid">
-                    <div class="plan-card" data-plan="500mb-1day">
+                    <div class="plan-card" data-plan="500mb-1day" data-id="manual-1day-500mb" data-price="129" data-original-price="150" data-plan-id="1">
                         <div class="plan-data">500MB</div>
                         <div class="plan-validity">1 Day</div>
                         <div class="plan-price">
@@ -1438,7 +1784,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="600mb-1day">
+                    <div class="plan-card" data-plan="600mb-1day" data-id="manual-1day-600mb" data-price="159" data-original-price="180" data-plan-id="2">
                         <div class="plan-data">600MB</div>
                         <div class="plan-validity">1 Day</div>
                         <div class="plan-price">
@@ -1447,7 +1793,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="2.5gb-1day">
+                    <div class="plan-card" data-plan="2.5gb-1day" data-id="manual-1day-2.5gb" data-price="519" data-original-price="600" data-badge="hot" data-plan-id="3">
                         <div class="badge hot">HOT!</div>
                         <div class="plan-data">2.5GB</div>
                         <div class="plan-validity">1 Day</div>
@@ -1457,7 +1803,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="4.5gb-1day">
+                    <div class="plan-card" data-plan="4.5gb-1day" data-id="manual-1day-4.5gb" data-price="1299" data-original-price="1500" data-plan-id="4">
                         <div class="plan-data">4.5GB</div>
                         <div class="plan-validity">1 Day</div>
                         <div class="plan-price">
@@ -1481,7 +1827,7 @@
                 </div>
                 
                 <div class="plans-grid">
-                    <div class="plan-card" data-plan="13gb-7day">
+                    <div class="plan-card" data-plan="13gb-7day" data-id="manual-7day-13gb" data-price="2599" data-original-price="3000" data-plan-id="5">
                         <div class="plan-data">13GB</div>
                         <div class="plan-validity">7 Days</div>
                         <div class="plan-price">
@@ -1490,7 +1836,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="18gb-7day">
+                    <div class="plan-card" data-plan="18gb-7day" data-id="manual-7day-18gb" data-price="4549" data-original-price="5200" data-plan-id="6">
                         <div class="plan-data">18GB</div>
                         <div class="plan-validity">7 Days</div>
                         <div class="plan-price">
@@ -1499,7 +1845,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="22gb-7day">
+                    <div class="plan-card" data-plan="22gb-7day" data-id="manual-7day-22gb" data-price="5199" data-original-price="6000" data-badge="popular" data-plan-id="7">
                         <div class="badge popular">MOST POPULAR</div>
                         <div class="plan-data">22GB</div>
                         <div class="plan-validity">7 Days</div>
@@ -1518,13 +1864,14 @@
                         <i class="fas fa-calendar-alt"></i>
                         14-Day Offers (2 Weeks Validity)
                     </div>
+                
                     <div class="category-description">
                         Best for: Remote work, gaming, frequent downloads, and social media content creators.
                     </div>
                 </div>
                 
                 <div class="plans-grid">
-                    <div class="plan-card" data-plan="30gb-14day">
+                    <div class="plan-card" data-plan="30gb-14day" data-id="manual-14day-30gb" data-price="6499" data-original-price="7500" data-badge="value" data-plan-id="8">
                         <div class="badge value">BEST VALUE</div>
                         <div class="plan-data">30GB</div>
                         <div class="plan-validity">14 Days</div>
@@ -1549,7 +1896,7 @@
                 </div>
                 
                 <div class="plans-grid">
-                    <div class="plan-card" data-plan="39gb-30day">
+                    <div class="plan-card" data-plan="39gb-30day" data-id="manual-30day-39gb" data-price="7799" data-original-price="9000" data-plan-id="9">
                         <div class="plan-data">39GB</div>
                         <div class="plan-validity">30 Days</div>
                         <div class="plan-price">
@@ -1558,7 +1905,7 @@
                         </div>
                     </div>
                     
-                    <div class="plan-card" data-plan="53gb-30day">
+                    <div class="plan-card" data-plan="53gb-30day" data-id="manual-30day-53gb" data-price="12999" data-original-price="15000" data-plan-id="10">
                         <div class="plan-data">53GB</div>
                         <div class="plan-validity">30 Days</div>
                         <div class="plan-price">
@@ -1599,6 +1946,72 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Requests Content -->
+        <div class="requests-content" id="requests-content">
+            <div class="section-title">Your Data Purchase Requests</div>
+            
+            <div id="requests-container">
+                <!-- Requests will be loaded dynamically -->
+                <div class="request-card pending">
+                    <div class="request-header">
+                        <div class="request-title">MTN 2.5GB - 1 Day</div>
+                        <div class="request-status pending">Pending</div>
+                    </div>
+                    <div class="request-details">
+                        <div class="request-detail">
+                            <div class="request-detail-label">Phone Number</div>
+                            <div class="request-detail-value">08012345678</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Amount</div>
+                            <div class="request-detail-value">₦519</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Date</div>
+                            <div class="request-detail-value">Today, 2:30 PM</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Request ID</div>
+                            <div class="request-detail-value">DATA_123456</div>
+                        </div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="request-btn">Cancel</button>
+                        <button class="request-btn primary">Track</button>
+                    </div>
+                </div>
+                
+                <div class="request-card completed">
+                    <div class="request-header">
+                        <div class="request-title">MTN 10GB - 30 Days</div>
+                        <div class="request-status completed">Completed</div>
+                    </div>
+                    <div class="request-details">
+                        <div class="request-detail">
+                            <div class="request-detail-label">Phone Number</div>
+                            <div class="request-detail-value">08012345678</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Amount</div>
+                            <div class="request-detail-value">₦2,499</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Date</div>
+                            <div class="request-detail-value">Yesterday, 10:15 AM</div>
+                        </div>
+                        <div class="request-detail">
+                            <div class="request-detail-label">Request ID</div>
+                            <div class="request-detail-value">DATA_123455</div>
+                        </div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="request-btn">Receipt</button>
+                        <button class="request-btn primary">Buy Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Navigation Bar -->
@@ -1617,9 +2030,10 @@
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transactions</span>
             </div>
-            <div class="nav-item" data-page="account">
+            <div class="nav-item" data-page="account" id="account-nav-item">
                 <i class="fas fa-user"></i>
                 <span>Account</span>
+                <div class="notification-badge" id="notification-badge">3</div>
             </div>
         </div>
     </div>
@@ -1669,17 +2083,884 @@
         </div>
     </div>
     
+    <!-- Notifications Panel -->
+    <div class="notifications-panel" id="notifications-panel">
+        <div class="notifications-header">
+            <div class="notifications-title">Notifications</div>
+            <div class="notifications-close" id="notifications-close">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="notifications-content" id="notifications-content">
+            <!-- Notifications will be loaded dynamically -->
+        </div>
+    </div>
+    
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
     
     <script>
-        // Mode Switcher
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeu5aIuvz107y9FDyU3quV_BT_4Cgob10",
+            authDomain: "veltrawave-vtu.firebaseapp.com",
+            projectId: "veltrawave-vtu",
+            storageBucket: "veltrawave-vtu.firebasestorage.app",
+            messagingSenderId: "431351611304",
+            appId: "1:431351611304:web:7381dd659920f9f325a79d",
+            measurementId: "G-HRHN8GJCR3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Global variables
+        let currentUser = null;
+        let userNotifications = [];
+        let dataPlans = [];
+        let fastTransferEnabled = false;
+        let manualFastTransferEnabled = false;
+        let selectedNetwork = 1; // Default to MTN (1)
+        let selectedPlanType = "";
+        let selectedPlanId = null;
+        
+        // Data Plan Mapping
+        const dataPlanMapping = {
+            "GIFTING": [
+                { id: 1, name: "500MB - 1 Day", data: "500MB", price: 129, validity: "1 Day" },
+                { id: 2, name: "1GB - 1 Day", data: "1GB", price: 249, validity: "1 Day" },
+                { id: 3, name: "2.5GB - 2 Days", data: "2.5GB", price: 519, validity: "2 Days" },
+                { id: 4, name: "5GB - 7 Days", data: "5GB", price: 1299, validity: "7 Days" },
+                { id: 5, name: "10GB - 30 Days", data: "10GB", price: 2499, validity: "30 Days" }
+            ],
+            "SME": [
+                { id: 6, name: "1GB - 30 Days", data: "1GB", price: 300, validity: "30 Days" },
+                { id: 7, name: "2GB - 30 Days", data: "2GB", price: 600, validity: "30 Days" },
+                { id: 8, name: "3GB - 30 Days", data: "3GB", price: 900, validity: "30 Days" },
+                { id: 9, name: "5GB - 30 Days", data: "5GB", price: 1500, validity: "30 Days" }
+            ],
+            "CORPORATE": [
+                { id: 10, name: "1GB - 30 Days", data: "1GB", price: 260, validity: "30 Days" },
+                { id: 11, name: "2GB - 30 Days", data: "2GB", price: 520, validity: "30 Days" },
+                { id: 12, name: "5GB - 30 Days", data: "5GB", price: 1300, validity: "30 Days" },
+                { id: 13, name: "10GB - 30 Days", data: "10GB", price: 2600, validity: "30 Days" }
+            ]
+        };
+        
+        // DOM Elements
         const modeOptions = document.querySelectorAll('.mode-option');
         const modeIndicator = document.querySelector('.mode-indicator');
         const automaticContent = document.getElementById('automatic-content');
         const manualContent = document.getElementById('manual-content');
+        const requestsContent = document.getElementById('requests-content');
+        const fastTransferToggle = document.getElementById('fast-transfer-toggle');
+        const fastTransferInfo = document.getElementById('fast-transfer-info');
+        const manualFastTransferToggle = document.getElementById('manual-fast-transfer-toggle');
+        const manualFastTransferInfo = document.getElementById('manual-fast-transfer-info');
+        const notificationBadge = document.getElementById('notification-badge');
+        const accountNavItem = document.getElementById('account-nav-item');
+        const notificationsPanel = document.getElementById('notifications-panel');
+        const notificationsClose = document.getElementById('notifications-close');
+        const notificationsContent = document.getElementById('notifications-content');
+        const planTypeSelect = document.getElementById('plan-type');
+        const dataPlanSelect = document.getElementById('data-plan');
         
-        // Set initial indicator position
+        // Check Authentication State
+        document.addEventListener('DOMContentLoaded', function() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in
+                    currentUser = user;
+                    fetchUserData(user.uid);
+                    fetchDataPlans();
+                    fetchUserNotifications(user.uid);
+                    fetchUserRequests(user.uid);
+                } else {
+                    // User is not signed in, redirect to login
+                    window.location.href = 'login.html';
+                }
+            });
+            
+            // Set initial indicator position
+            setModeIndicatorPosition(document.querySelector('.mode-option.active'));
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+            
+            // Initialize event listeners
+            initEventListeners();
+        });
+        
+        // Fetch User Data
+        async function fetchUserData(userId) {
+            try {
+                const userDoc = await db.collection('users').doc(userId).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    // Update UI with user data
+                    console.log('User data:', userData);
+                }
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                showToast('error', 'Error', 'Failed to load your account data');
+            }
+        }
+        
+        // Fetch Data Plans
+        async function fetchDataPlans() {
+            try {
+                const plansSnapshot = await db.collection('dataPlans').get();
+                dataPlans = [];
+                
+                plansSnapshot.forEach(doc => {
+                    dataPlans.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                // Update data plan dropdowns
+                updateDataPlanDropdown();
+                
+                console.log('Data plans loaded:', dataPlans);
+            } catch (error) {
+                console.error('Error fetching data plans:', error);
+                showToast('error', 'Error', 'Failed to load data plans');
+            }
+        }
+        
+        // Fetch User Requests
+        async function fetchUserRequests(userId) {
+            try {
+                const requestsSnapshot = await db.collection('dataRequests')
+                    .where('userId', '==', userId)
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                const requestsContainer = document.getElementById('requests-container');
+                requestsContainer.innerHTML = '';
+                
+                if (requestsSnapshot.empty) {
+                    requestsContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                            <i class="fas fa-history" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>You haven't made any data purchase requests yet.</p>
+                            <button class="primary-btn" style="max-width: 200px; margin: 20px auto 0;" onclick="document.querySelector('.mode-option[data-mode=\'automatic\']').click()">
+                                Buy Data Now
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                requestsSnapshot.forEach(doc => {
+                    const request = doc.data();
+                    const timestamp = request.timestamp ? new Date(request.timestamp.toDate()) : new Date();
+                    const formattedTime = formatTimestamp(timestamp);
+                    
+                    const requestCard = document.createElement('div');
+                    requestCard.className = `request-card ${request.status}`;
+                    
+                    requestCard.innerHTML = `
+                        <div class="request-header">
+                            <div class="request-title">${request.planName}</div>
+                            <div class="request-status ${request.status}">${request.status.charAt(0).toUpperCase() + request.status.slice(1)}</div>
+                        </div>
+                        <div class="request-details">
+                            <div class="request-detail">
+                                <div class="request-detail-label">Phone Number</div>
+                                <div class="request-detail-value">${request.phoneNumber}</div>
+                            </div>
+                            <div class="request-detail">
+                                <div class="request-detail-label">Amount</div>
+                                <div class="request-detail-value">₦${request.amount.toLocaleString()}</div>
+                            </div>
+                            <div class="request-detail">
+                                <div class="request-detail-label">Date</div>
+                                <div class="request-detail-value">${formattedTime}</div>
+                            </div>
+                            <div class="request-detail">
+                                <div class="request-detail-label">Request ID</div>
+                                <div class="request-detail-value">${request.requestId || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            ${request.status === 'pending' ? 
+                                `<button class="request-btn" data-id="${doc.id}" data-action="cancel">Cancel</button>
+                                <button class="request-btn primary" data-id="${doc.id}" data-action="track">Track</button>` : 
+                                `<button class="request-btn" data-id="${doc.id}" data-action="receipt">Receipt</button>
+                                <button class="request-btn primary" data-id="${doc.id}" data-action="buyAgain">Buy Again</button>`
+                            }
+                        </div>
+                    `;
+                    
+                    requestsContainer.appendChild(requestCard);
+                    
+                    // Add event listeners to buttons
+                    const buttons = requestCard.querySelectorAll('.request-btn');
+                    buttons.forEach(button => {
+                        button.addEventListener('click', function() {
+                            const action = this.dataset.action;
+                            const requestId = this.dataset.id;
+                            
+                            switch(action) {
+                                case 'cancel':
+                                    cancelRequest(requestId);
+                                    break;
+                                case 'track':
+                                    trackRequest(requestId);
+                                    break;
+                                case 'receipt':
+                                    showReceipt(requestId);
+                                    break;
+                                case 'buyAgain':
+                                    buyAgain(requestId);
+                                    break;
+                            }
+                        });
+                    });
+                });
+                
+            } catch (error) {
+                console.error('Error fetching user requests:', error);
+                showToast('error', 'Error', 'Failed to load your data purchase requests');
+            }
+        }
+        
+        // Cancel Request
+        function cancelRequest(requestId) {
+            // Implement cancel request functionality
+            showToast('info', 'Request Cancellation', 'Your cancellation request has been submitted');
+        }
+        
+        // Track Request
+        function trackRequest(requestId) {
+            // Implement track request functionality
+            showToast('info', 'Request Tracking', 'Tracking information will be sent to your email');
+        }
+        
+        // Show Receipt
+        function showReceipt(requestId) {
+            // Implement show receipt functionality
+            showToast('info', 'Receipt', 'Receipt has been sent to your email');
+        }
+        
+        // Buy Again
+        function buyAgain(requestId) {
+            // Implement buy again functionality
+            showToast('info', 'Buy Again', 'Preparing your previous order for purchase');
+            
+            // Switch to automatic mode
+            document.querySelector('.mode-option[data-mode="automatic"]').click();
+        }
+        
+        // Update Data Plan Dropdown
+        function updateDataPlanDropdown() {
+            // Clear existing options except the first one
+            while (dataPlanSelect.options.length > 1) {
+                dataPlanSelect.remove(1);
+            }
+            
+            // Get selected plan type
+            const planType = planTypeSelect.value;
+            
+            if (!planType) return;
+            
+            // Get plans for selected type
+            const plans = dataPlanMapping[planType] || [];
+            
+            // Add plans to dropdown
+            plans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.id;
+                option.textContent = `${plan.name} - ₦${plan.price}`;
+                dataPlanSelect.appendChild(option);
+            });
+        }
+        
+        // Fetch User Notifications
+        async function fetchUserNotifications(userId) {
+            try {
+                const notificationsSnapshot = await db.collection('users').doc(userId)
+                    .collection('notifications')
+                    .orderBy('timestamp', 'desc')
+                    .get();
+                
+                userNotifications = [];
+                let unreadCount = 0;
+                
+                notificationsSnapshot.forEach(doc => {
+                    const notification = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    
+                    userNotifications.push(notification);
+                    
+                    if (!notification.read) {
+                        unreadCount++;
+                    }
+                });
+                
+                // Update notification badge
+                if (unreadCount > 0) {
+                    notificationBadge.textContent = unreadCount;
+                    notificationBadge.style.display = 'flex';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+                
+                // Render notifications in panel
+                renderNotifications();
+                
+                console.log('Notifications loaded:', userNotifications);
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+        
+        // Render Notifications
+        function renderNotifications() {
+            notificationsContent.innerHTML = '';
+            
+            if (userNotifications.length === 0) {
+                notificationsContent.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                        <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>No notifications yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            userNotifications.forEach(notification => {
+                const notificationItem = document.createElement('div');
+                notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
+                
+                // Format timestamp
+                const timestamp = notification.timestamp ? new Date(notification.timestamp.toDate()) : new Date();
+                const formattedTime = formatTimestamp(timestamp);
+                
+                notificationItem.innerHTML = `
+                    <div class="notification-header">
+                        <div class="notification-title">${notification.title || 'Notification'}</div>
+                        <div class="notification-time">${formattedTime}</div>
+                    </div>
+                    <div class="notification-message">${notification.text}</div>
+                    ${!notification.read ? `
+                    <div class="notification-actions">
+                        <button class="notification-btn mark-read" data-id="${notification.id}">Mark as read</button>
+                    </div>
+                    ` : ''}
+                `;
+                
+                notificationsContent.appendChild(notificationItem);
+                
+                // Add event listener to mark as read button
+                const markReadBtn = notificationItem.querySelector('.mark-read');
+                if (markReadBtn) {
+                    markReadBtn.addEventListener('click', function() {
+                        markNotificationAsRead(notification.id);
+                    });
+                }
+            });
+        }
+        
+        // Mark Notification as Read
+        async function markNotificationAsRead(notificationId) {
+            try {
+                await db.collection('users').doc(currentUser.uid)
+                    .collection('notifications')
+                    .doc(notificationId)
+                    .update({
+                        read: true
+                    });
+                
+                // Update local notifications
+                const index = userNotifications.findIndex(n => n.id === notificationId);
+                if (index !== -1) {
+                    userNotifications[index].read = true;
+                }
+                
+                // Re-render notifications
+                renderNotifications();
+                
+                // Update notification badge
+                const unreadCount = userNotifications.filter(n => !n.read).length;
+                if (unreadCount > 0) {
+                    notificationBadge.textContent = unreadCount;
+                    notificationBadge.style.display = 'flex';
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+                
+                showToast('success', 'Success', 'Notification marked as read');
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+                showToast('error', 'Error', 'Failed to update notification');
+            }
+        }
+        
+        // Format Timestamp
+        function formatTimestamp(timestamp) {
+            const now = new Date();
+            const diff = now - timestamp;
+            
+            // Less than a minute
+            if (diff < 60000) {
+                return 'Just now';
+            }
+            
+            // Less than an hour
+            if (diff < 3600000) {
+                const minutes = Math.floor(diff / 60000);
+                return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+            }
+            
+            // Less than a day
+            if (diff < 86400000) {
+                const hours = Math.floor(diff / 3600000);
+                return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+            }
+            
+            // Less than a week
+            if (diff < 604800000) {
+                const days = Math.floor(diff / 86400000);
+                return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+            }
+            
+            // Format as date
+            return timestamp.toLocaleDateString();
+        }
+        
+        // Initialize Event Listeners
+        function initEventListeners() {
+            // Mode switcher click handler
+            modeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    modeOptions.forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked option
+                    this.classList.add('active');
+                    
+                    // Move indicator
+                    setModeIndicatorPosition(this);
+                    
+                    // Show/hide content based on selected mode
+                    const mode = this.dataset.mode;
+                    if (mode === 'automatic') {
+                        automaticContent.classList.add('active');
+                        manualContent.classList.remove('active');
+                        requestsContent.classList.remove('active');
+                        showToast('success', 'Mode Changed', 'Switched to Automatic mode');
+                    } else if (mode === 'manual') {
+                        automaticContent.classList.remove('active');
+                        manualContent.classList.add('active');
+                        requestsContent.classList.remove('active');
+                        showToast('success', 'Mode Changed', 'Switched to Manual mode');
+                    } else if (mode === 'requests') {
+                        automaticContent.classList.remove('active');
+                        manualContent.classList.remove('active');
+                        requestsContent.classList.add('active');
+                        showToast('success', 'Mode Changed', 'Viewing your data requests');
+                    }
+                });
+            });
+            
+            // Plan Type Change
+            planTypeSelect.addEventListener('change', function() {
+                selectedPlanType = this.value;
+                updateDataPlanDropdown();
+            });
+            
+            // Data Plan Change
+            dataPlanSelect.addEventListener('change', function() {
+                selectedPlanId = this.value;
+            });
+            
+            // Fast Transfer Toggle
+            fastTransferToggle.addEventListener('change', function() {
+                fastTransferEnabled = this.checked;
+                
+                if (fastTransferEnabled) {
+                    fastTransferInfo.classList.add('show');
+                    showToast('success', 'Fast Transfer Enabled', 'Your data requests will be sent to WhatsApp');
+                } else {
+                    fastTransferInfo.classList.remove('show');
+                    showToast('info', 'Fast Transfer Disabled', 'Your data requests will be processed normally');
+                }
+            });
+            
+            // Manual Fast Transfer Toggle
+            manualFastTransferToggle.addEventListener('change', function() {
+                manualFastTransferEnabled = this.checked;
+                  function() {
+                manualFastTransferEnabled = this.checked;
+                
+                if (manualFastTransferEnabled) {
+                    manualFastTransferInfo.classList.add('show');
+                    showToast('success', 'Fast Transfer Enabled', 'Your data requests will be sent to WhatsApp for faster processing');
+                } else {
+                    manualFastTransferInfo.classList.remove('show');
+                    showToast('info', 'Fast Transfer Disabled', 'Your data requests will be processed normally');
+                }
+            });
+            
+            // Navigation Bar
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Handle notifications panel
+                    if (this.dataset.page === 'account') {
+                        notificationsPanel.classList.toggle('show');
+                        return;
+                    }
+                    
+                    // Remove active class from all items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Move indicator
+                    setNavIndicatorPosition(this);
+                    
+                    // Create ripple effect
+                    const navBar = document.querySelector('.nav-bar');
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    
+                    const rect = navBar.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size / 2;
+                    const y = e.clientY - rect.top - size / 2;
+                    
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    navBar.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 800);
+                    
+                    // Navigate to the corresponding page
+                    if (this.dataset.page === 'home') {
+                        window.location.href = 'index.html';
+                    } else if (this.dataset.page === 'transactions') {
+                        window.location.href = 'transactions.html';
+                    } else if (this.dataset.page === 'services') {
+                        // Already on services page
+                    }
+                });
+            });
+            
+            // Close notifications panel
+            notificationsClose.addEventListener('click', function() {
+                notificationsPanel.classList.remove('show');
+            });
+            
+            // Plan Cards Selection
+            const planCards = document.querySelectorAll('.plan-card');
+            const selectedPlanDisplay = document.getElementById('selected-plan-display');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            let selectedPlan = null;
+            
+            planCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove active class from all cards
+                    planCards.forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked card
+                    this.classList.add('active');
+                    
+                    // Get plan details
+                    const planData = this.querySelector('.plan-data').textContent;
+                    const planValidity = this.querySelector('.plan-validity').textContent;
+                    const planPrice = this.querySelector('.price-new').textContent;
+                    
+                    // Update selected plan display
+                    selectedPlanDisplay.textContent = `${planData} - ${planValidity} - ${planPrice}`;
+                    selectedPlanDisplay.classList.add('active');
+                    
+                    // Enable order button
+                    placeOrderBtn.disabled = false;
+                    
+                    // Store selected plan
+                    selectedPlanDisplay.textContent = `${planData} - ${planValidity} - ${planPrice}`;
+                    selectedPlanDisplay.classList.add('active');
+                    
+                    // Enable order button
+                    placeOrderBtn.disabled = false;
+                    
+                    // Store selected plan
+                    selectedPlan = {
+                        id: this.dataset.id,
+                        data: planData,
+                        validity: planValidity,
+                        price: this.dataset.price,
+                        originalPrice: this.dataset.originalPrice,
+                        badge: this.dataset.badge || null,
+                        planId: this.dataset.planId
+                    };
+                    
+                    showToast('success', 'Plan Selected', `Selected ${planData} plan for ${planValidity}`);
+                });
+            });
+            
+            // Automatic Form Submission
+            const dataForm = document.getElementById('data-form');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const closeModal = document.getElementById('close-modal');
+            const cancelPurchase = document.getElementById('cancel-purchase');
+            const confirmPurchase = document.getElementById('confirm-purchase');
+            const confirmPlan = document.getElementById('confirm-plan');
+            const confirmNumber = document.getElementById('confirm-number');
+            const confirmAmount = document.getElementById('confirm-amount');
+            
+            dataForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const planType = document.getElementById('plan-type').value;
+                const dataPlan = document.getElementById('data-plan');
+                const phoneNumber = document.getElementById('phone-number').value;
+                
+                if (!phoneNumber || phoneNumber.length !== 11) {
+                    showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
+                    return;
+                }
+                
+                if (!dataPlan.value) {
+                    showToast('error', 'Invalid Plan', 'Please select a data plan');
+                    return;
+                }
+                
+                // Get selected plan text
+                const selectedPlanText = dataPlan.options[dataPlan.selectedIndex].text;
+                
+                // Update confirmation modal
+                confirmPlan.textContent = selectedPlanText.split(' - ')[0];
+                confirmNumber.textContent = phoneNumber;
+                confirmAmount.textContent = selectedPlanText.split(' - ')[1];
+                
+                // Show confirmation modal
+                confirmationModal.classList.add('show');
+            });
+            
+            // Manual Order Submission
+            placeOrderBtn.addEventListener('click', function() {
+                const phoneNumber = document.getElementById('manual-phone-number').value;
+                
+                if (!phoneNumber || phoneNumber.length !== 11) {
+                    showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
+                    return;
+                }
+                
+                if (!selectedPlan) {
+                    showToast('error', 'No Plan Selected', 'Please select a data plan');
+                    return;
+                }
+                
+                // Update confirmation modal
+                confirmPlan.textContent = `${selectedPlan.data} - ${selectedPlan.validity}`;
+                confirmNumber.textContent = phoneNumber;
+                confirmAmount.textContent = `₦${parseInt(selectedPlan.price).toLocaleString()}`;
+                
+                // Show confirmation modal
+                confirmationModal.classList.add('show');
+            });
+            
+            // Close modal
+            closeModal.addEventListener('click', function() {
+                confirmationModal.classList.remove('show');
+            });
+            
+            cancelPurchase.addEventListener('click', function() {
+                confirmationModal.classList.remove('show');
+                showToast('info', 'Purchase Cancelled', 'Your data purchase has been cancelled');
+            });
+            
+            confirmPurchase.addEventListener('click', function() {
+                // Process the purchase
+                processDataPurchase();
+            });
+            
+            // Network card click handler
+            const networkCards = document.querySelectorAll('.network-card');
+            const networkIndicator = document.getElementById('network-indicator');
+            const networkSwitcher = document.getElementById('network-switcher');
+            
+            networkCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Update active network
+                    networkCards.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update selected network
+                    selectedNetwork = parseInt(this.dataset.networkId);
+                    
+                    // Update network indicator
+                    const networkName = this.querySelector('.network-name').textContent;
+                    networkIndicator.innerHTML = `<i class="fas fa-signal"></i> ${networkName}`;
+                    
+                    showToast('success', 'Network Changed', `Switched to ${networkName} network`);
+                });
+            });
+            
+            // Network indicator click handler
+            networkIndicator.addEventListener('click', function() {
+                networkSwitcher.classList.toggle('show');
+            });
+            
+            // Close network switcher when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!networkIndicator.contains(e.target) && !networkSwitcher.contains(e.target)) {
+                    networkSwitcher.classList.remove('show');
+                }
+            });
+            
+            // Back button
+            document.getElementById('back-button').addEventListener('click', function() {
+                showToast('info', 'Navigation', 'Returning to dashboard...');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            });
+        }
+        
+        // Process Data Purchase
+        async function processDataPurchase() {
+            try {
+                // Disable confirm button and show loading
+                const confirmPurchase = document.getElementById('confirm-purchase');
+                confirmPurchase.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                confirmPurchase.disabled = true;
+                
+                // Get purchase details
+                const phoneNumber = document.getElementById('confirm-number').textContent;
+                const planText = document.getElementById('confirm-plan').textContent;
+                const amountText = document.getElementById('confirm-amount').textContent;
+                
+                // Determine if this is from automatic or manual mode
+                const isManual = document.querySelector('.mode-option.active').dataset.mode === 'manual';
+                const isFastTransfer = isManual ? manualFastTransferEnabled : fastTransferEnabled;
+                
+                // Get plan ID
+                let planId;
+                if (isManual) {
+                    planId = selectedPlan.planId;
+                } else {
+                    planId = selectedPlanId;
+                }
+                
+                // Generate a unique request ID
+                const requestId = `Data_${Date.now()}`;
+                
+                // Create API request payload
+                const payload = {
+                    network: selectedNetwork,
+                    phone: phoneNumber.replace(/^0/, '234'), // Convert to international format
+                    data_plan: parseInt(planId),
+                    bypass: false,
+                    'request-id': requestId
+                };
+                
+                console.log('Sending API request:', payload);
+                
+                // Create request data for Firestore
+                const requestData = {
+                    customerName: currentUser.displayName || 'User',
+                    userId: currentUser.uid,
+                    phoneNumber: phoneNumber,
+                    planName: planText,
+                    amount: parseInt(amountText.replace(/[^\d]/g, '')),
+                    status: 'pending',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    fastTransfer: isFastTransfer,
+                    requestId: requestId
+                };
+                
+                // Add to dataRequests collection
+                await db.collection('dataRequests').add(requestData);
+                
+                // Create notification for user
+                await db.collection('users').doc(currentUser.uid)
+                    .collection('notifications')
+                    .add({
+                        title: 'Data Purchase Request',
+                        text: `Your request for ${planText} to ${phoneNumber} has been submitted and is being processed.`,
+                        type: 'info',
+                        read: false,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                
+                // Close modal
+                confirmationModal.classList.remove('show');
+                
+                // Show success toast
+                if (isFastTransfer) {
+                    showToast('success', 'Request Sent', 'Your data request has been sent to WhatsApp for faster processing');
+                    
+                    // Redirect to WhatsApp
+                    setTimeout(() => {
+                        const whatsappMessage = `Hello, I would like to purchase ${planText} data for ${phoneNumber}. My request ID is ${requestId}.`;
+                        const whatsappUrl = `https://wa.me/2347067479043?text=${encodeURIComponent(whatsappMessage)}`;
+                        window.open(whatsappUrl, '_blank');
+                    }, 1500);
+                } else {
+                    showToast('success', 'Request Submitted', 'Your data request has been submitted successfully');
+                }
+                
+                // Reset form
+                if (isManual) {
+                    // Reset manual selection
+                    document.querySelectorAll('.plan-card').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    document.getElementById('selected-plan-display').textContent = 'Select a plan above';
+                    document.getElementById('selected-plan-display').classList.remove('active');
+                    document.getElementById('place-order-btn').disabled = true;
+                    document.getElementById('manual-phone-number').value = '';
+                    selectedPlan = null;
+                } else {
+                    // Reset automatic form
+                    document.getElementById('data-form').reset();
+                    selectedPlanId = null;
+                    selectedPlanType = "";
+                    updateDataPlanDropdown();
+                }
+                
+                // Reset confirmation button
+                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
+                confirmPurchase.disabled = false;
+                
+                // Refresh notifications and requests
+                fetchUserNotifications(currentUser.uid);
+                fetchUserRequests(currentUser.uid);
+                
+            } catch (error) {
+                console.error('Error processing data purchase:', error);
+                showToast('error', 'Purchase Failed', 'There was an error processing your request');
+                
+                // Reset confirmation button
+                const confirmPurchase = document.getElementById('confirm-purchase');
+                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
+                confirmPurchase.disabled = false;
+            }
+        }
+        
+        // Set Mode Indicator Position
         function setModeIndicatorPosition(item) {
             const itemRect = item.getBoundingClientRect();
             const switcherRect = document.querySelector('.mode-switcher').getBoundingClientRect();
@@ -1688,299 +2969,15 @@
             modeIndicator.style.left = `${itemRect.left - switcherRect.left}px`;
         }
         
-        // Set initial position
-        setModeIndicatorPosition(document.querySelector('.mode-option.active'));
-        
-        // Mode switcher click handler
-        modeOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove active class from all options
-                modeOptions.forEach(opt => {
-                    opt.classList.remove('active');
-                });
-                
-                // Add active class to clicked option
-                this.classList.add('active');
-                
-                // Move indicator
-                setModeIndicatorPosition(this);
-                
-                // Show/hide content based on selected mode
-                const mode = this.dataset.mode;
-                if (mode === 'automatic') {
-                    automaticContent.classList.add('active');
-                    manualContent.classList.remove('active');
-                    showToast('success', 'Mode Changed', 'Switched to Automatic mode');
-                } else {
-                    automaticContent.classList.remove('active');
-                    manualContent.classList.add('active');
-                    showToast('success', 'Mode Changed', 'Switched to Manual mode');
-                }
-            });
-        });
-        
-        // Navigation Bar
-        const navItems = document.querySelectorAll('.nav-item');
-        const navIndicator = document.querySelector('.nav-indicator');
-        
-        // Set initial indicator position
+        // Set Nav Indicator Position
         function setNavIndicatorPosition(item) {
             const itemRect = item.getBoundingClientRect();
             const navRect = document.querySelector('.nav-bar').getBoundingClientRect();
             
+            const navIndicator = document.querySelector('.nav-indicator');
             navIndicator.style.width = `${itemRect.width}px`;
             navIndicator.style.left = `${itemRect.left - navRect.left}px`;
         }
-        
-        // Set initial position
-        setNavIndicatorPosition(document.querySelector('.nav-item.active'));
-        
-        // Add ripple effect and handle navigation
-        navItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                // Remove active class from all items
-                navItems.forEach(navItem => {
-                    navItem.classList.remove('active');
-                });
-                
-                // Add active class to clicked item
-                this.classList.add('active');
-                
-                // Move indicator
-                setNavIndicatorPosition(this);
-                
-                // Create ripple effect
-                const navBar = document.querySelector('.nav-bar');
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple');
-                
-                const rect = navBar.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.width = ripple.style.height = `${size}px`;
-                ripple.style.left = `${x}px`;
-                ripple.style.top = `${y}px`;
-                
-                navBar.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 800);
-                
-                // In a real app, you would navigate to the corresponding page
-                showToast('info', 'Navigation', `Navigating to ${this.dataset.page} page...`);
-            });
-        });
-        
-        // Plan Cards Selection
-        const planCards = document.querySelectorAll('.plan-card');
-        const selectedPlanDisplay = document.getElementById('selected-plan-display');
-        const placeOrderBtn = document.getElementById('place-order-btn');
-        let selectedPlan = null;
-        
-        planCards.forEach(card => {
-            card.addEventListener('click', function() {
-                // Remove active class from all cards
-                planCards.forEach(c => {
-                    c.classList.remove('active');
-                });
-                
-                // Add active class to clicked card
-                this.classList.add('active');
-                
-                // Get plan details
-                const planData = this.querySelector('.plan-data').textContent;
-                const planValidity = this.querySelector('.plan-validity').textContent;
-                const planPrice = this.querySelector('.price-new').textContent;
-                
-                // Update selected plan display
-                selectedPlanDisplay.textContent = `${planData} - ${planValidity} - ${planPrice}`;
-                selectedPlanDisplay.classList.add('active');
-                
-                // Enable order button
-                placeOrderBtn.disabled = false;
-                
-                // Store selected plan
-                selectedPlan = {
-                    id: this.dataset.plan,
-                    data: planData,
-                    validity: planValidity,
-                    price: planPrice
-                };
-                
-                showToast('success', 'Plan Selected', `Selected ${planData} plan for ${planValidity}`);
-            });
-        });
-        
-        // Automatic Form Submission
-        const dataForm = document.getElementById('data-form');
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const closeModal = document.getElementById('close-modal');
-        const cancelPurchase = document.getElementById('cancel-purchase');
-        const confirmPurchase = document.getElementById('confirm-purchase');
-        const confirmPlan = document.getElementById('confirm-plan');
-        const confirmNumber = document.getElementById('confirm-number');
-        const confirmAmount = document.getElementById('confirm-amount');
-        
-        dataForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const planType = document.getElementById('plan-type').value;
-            const dataPlan = document.getElementById('data-plan');
-            const phoneNumber = document.getElementById('phone-number').value;
-            
-            if (!phoneNumber || phoneNumber.length !== 11) {
-                showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
-                return;
-            }
-            
-            // Get selected plan text
-            const selectedPlanText = dataPlan.options[dataPlan.selectedIndex].text;
-            
-            // Update confirmation modal
-            confirmPlan.textContent = selectedPlanText.split(' - ')[0] + ' - ' + selectedPlanText.split(' - ')[1];
-            confirmNumber.textContent = phoneNumber;
-            confirmAmount.textContent = selectedPlanText.split(' - ')[2];
-            
-            // Show confirmation modal
-            confirmationModal.classList.add('show');
-        });
-        
-        // Manual Order Submission
-        placeOrderBtn.addEventListener('click', function() {
-            const phoneNumber = document.getElementById('manual-phone-number').value;
-            
-            if (!phoneNumber || phoneNumber.length !== 11) {
-                showToast('error', 'Invalid Number', 'Please enter a valid 11-digit phone number');
-                return;
-            }
-            
-            // Update confirmation modal
-            confirmPlan.textContent = `${selectedPlan.data} - ${selectedPlan.validity}`;
-            confirmNumber.textContent = phoneNumber;
-            confirmAmount.textContent = selectedPlan.price;
-            
-            // Show confirmation modal
-            confirmationModal.classList.add('show');
-        });
-        
-        // Close modal
-        closeModal.addEventListener('click', function() {
-            confirmationModal.classList.remove('show');
-        });
-        
-        cancelPurchase.addEventListener('click', function() {
-            confirmationModal.classList.remove('show');
-            showToast('info', 'Purchase Cancelled', 'Your data purchase has been cancelled');
-        });
-        
-        confirmPurchase.addEventListener('click', function() {
-            // In a real app, you would process the purchase here
-            console.log('Processing purchase...');
-            
-            // Simulate processing
-            confirmPurchase.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            confirmPurchase.disabled = true;
-            
-            setTimeout(() => {
-                confirmationModal.classList.remove('show');
-                showToast('success', 'Purchase Successful', 'Your data will be delivered within 30 minutes');
-                
-                // Reset form
-                dataForm.reset();
-                
-                // Reset manual selection
-                planCards.forEach(c => {
-                    c.classList.remove('active');
-                });
-                selectedPlanDisplay.textContent = 'Select a plan above';
-                selectedPlanDisplay.classList.remove('active');
-                placeOrderBtn.disabled = true;
-                
-                // Reset confirmation button
-                confirmPurchase.innerHTML = '<i class="fas fa-check-circle"></i> Confirm';
-                confirmPurchase.disabled = false;
-            }, 2000);
-        });
-        
-        // Live Users Count Animation
-        const liveUsersCount = document.querySelector('.live-users-count');
-        let count = 128;
-        
-        setInterval(() => {
-            // Random fluctuation in user count
-            const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
-            count = Math.max(100, count + change);
-            liveUsersCount.textContent = count;
-        }, 3000);
-        
-        // Window resize handler for indicators
-        window.addEventListener('resize', function() {
-            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
-            setModeIndicatorPosition(document.querySelector('.mode-option.active'));
-        });
-        
-        // Back button
-        document.querySelector('.back-button').addEventListener('click', function() {
-            showToast('info', 'Navigation', 'Returning to dashboard...');
-            setTimeout(() => {
-                window.location.href = 'vtu-dashboard.html';
-            }, 1000);
-        });
-        
-        // Network Indicator (for network switching)
-        const networkIndicator = document.getElementById('network-indicator');
-        const networkSwitcher = document.getElementById('network-switcher');
-        
-        networkIndicator.addEventListener('click', function() {
-            networkSwitcher.classList.toggle('show');
-        });
-        
-        // Close network switcher when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!networkIndicator.contains(e.target) && !networkSwitcher.contains(e.target)) {
-                networkSwitcher.classList.remove('show');
-            }
-        });
-        
-        // Network switcher items
-        const networkSwitcherItems = document.querySelectorAll('.network-switcher-item');
-        
-        networkSwitcherItems.forEach(item => {
-            item.addEventListener('click', function() {
-                if (this.classList.contains('disabled')) {
-                    showToast('warning', 'Coming Soon', `${this.querySelector('.network-switcher-name').textContent} is not yet available`);
-                    return;
-                }
-                
-                // Update active network
-                networkSwitcherItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Update network indicator
-                const networkName = this.querySelector('.network-switcher-name').textContent;
-                networkIndicator.innerHTML = `<i class="fas fa-signal"></i> ${networkName}`;
-                
-                // Update network cards
-                const networkCards = document.querySelectorAll('.network-card');
-                networkCards.forEach(card => {
-                    if (card.dataset.network === this.dataset.network) {
-                        card.classList.add('active');
-                    } else {
-                        card.classList.remove('active');
-                    }
-                });
-                
-                // Close network switcher
-                networkSwitcher.classList.remove('show');
-                
-                // Show toast
-                showToast('success', 'Network Changed', `Switched to ${networkName} network`);
-            });
-        });
         
         // Toast Notification System
         function showToast(type, title, message) {
@@ -1997,13 +2994,13 @@
                     icon = 'check-circle';
                     break;
                 case 'error':
-                    icon = 'x-circle';
+                    icon = 'times-circle';
                     break;
                 case 'warning':
-                    icon = 'alert-triangle';
+                    icon = 'exclamation-triangle';
                     break;
                 default:
-                    icon = 'info';
+                    icon = 'info-circle';
             }
             
             // Set toast content
@@ -2034,35 +3031,10 @@
             }, 5500);
         }
         
-        // Network card click handler
-        const networkCards = document.querySelectorAll('.network-card');
-        
-        networkCards.forEach(card => {
-            card.addEventListener('click', function() {
-                if (this.classList.contains('disabled')) {
-                    showToast('warning', 'Coming Soon', `${this.querySelector('.network-name').textContent} is not yet available`);
-                    return;
-                }
-                
-                // Update active network
-                networkCards.forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Update network indicator
-                const networkName = this.querySelector('.network-name').textContent;
-                networkIndicator.innerHTML = `<i class="fas fa-signal"></i> ${networkName}`;
-                
-                // Update network switcher
-                networkSwitcherItems.forEach(item => {
-                    if (item.dataset.network === this.dataset.network) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-                
-                showToast('success', 'Network Changed', `Switched to ${networkName} network`);
-            });
+        // Window resize handler for indicators
+        window.addEventListener('resize', function() {
+            setNavIndicatorPosition(document.querySelector('.nav-item.active'));
+            setModeIndicatorPosition(document.querySelector('.mode-option.active'));
         });
         
         // Show initial toast on page load
@@ -2072,3 +3044,4 @@
     </script>
 </body>
 </html>
+
